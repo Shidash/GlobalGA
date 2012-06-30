@@ -1,0 +1,18 @@
+To compile and run:
+1. If you are on a *nix system, type 'make' to compile. Type 'make clean' to make clean. Otherwise, just compile the files as you would normally. If you run into trouble, be sure you have the Java Swing library as well as the others included
+
+2. To run the program, type 'java Server 9001'. Port 9001 is the default specified in the included html file.
+
+3. Once it is running, go to the included html file in a browser. It should connect to the server automatically.
+
+
+Commands:
+'/join channelname' to join a channel
+'/part channelname' to leave a channel
+'/create channelname' to create a channel
+'/message channelname message' to send a message to a channel
+'/nick newnick' to change your name
+'/register nick password' to register your name
+'/identify nick passowrd' to identify/sign in
+
+Everything else should be taken care of automatically or be fairly clear on the GUI. Please refer to documentation.pdf for more detailed information.
