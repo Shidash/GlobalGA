@@ -1,7 +1,9 @@
 To compile and run:
-1. If you are on a *nix system, type 'make' to compile. Type 'make clean' to make clean. Otherwise, just compile the files as you would normally. If you run into trouble, be sure you have the Java Swing library as well as the others included
+1. Type 'ant' to compile. Type 'ant clean' to clean up the files. 
 
-2. To run the program, type 'java Server 9001'. Port 9001 is the default specified in the included html file.
+If you run into trouble, be sure you have the Java Swing and OTR libraries. Also be sure you are running Java Sun as the Java OTR library requires this.
+
+2. To run the program, type 'java Server 9001' while in the src directory. Port 9001 is the default specified in the included html file.
 
 3. Once it is running, go to the included html file in a browser. It should connect to the server automatically.
 

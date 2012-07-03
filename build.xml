@@ -1,0 +1,22 @@
+<project name="GlobalGA" default="jar" basedir=".">  
+  <property name="src" location="src"/>
+  <property name="jar"  location="."/>
+
+  <target name="compile" description="compile the source " >
+    <javac srcdir="${src}" destdir="${src}"/>
+  </target>
+
+  <target name="jar" depends="compile" description="generate the jar" >
+    <jar jarfile="ClientJAR.jar" basedir="src"/>
+  </target>
+
+  <target name="clean" description="clean up" >
+    <delete file = "${src}/Server.class"/>
+    <delete file = "${src}/ServerThread.class"/>
+    <delete file = "${src}/Client.class"/>
+    <delete file = "${src}/Client$1.class"/>
+    <delete file = "${src}/Client$2.class"/>
+    <delete file = "${src}/ClientApplet.class"/>
+    <delete file="ClientJAR.jar"/>
+  </target>
+</project>

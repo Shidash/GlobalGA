@@ -5,6 +5,8 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+//import ca.uwaterloo.crysp.otr.*;
+
 
 public class Client extends Panel implements Runnable
 {
