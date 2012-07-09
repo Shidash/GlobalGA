@@ -20,6 +20,7 @@ public class Client extends Panel implements Runnable
     private int i = 1;
     private String[] roomlist = new String[99999];
     private ArrayList<JTextArea> taarray = new ArrayList<JTextArea>();
+    private UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
 
     public Client(String host, int port){
 	GridBagLayout gbl = new GridBagLayout();

@@ -4,6 +4,7 @@ import java.util.*;
 import ca.uwaterloo.crysp.otr.*;
 import ca.uwaterloo.crysp.otr.iface.*;
 
+
 public class Server
 {
     //For accepting new connections
@@ -20,6 +21,7 @@ public class Server
     private String password;
     private ArrayList<Hashtable<String, Object>> rooms = new ArrayList<Hashtable<String, Object>>();
     Hashtable roomlist = new Hashtable();
+    private UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
     
     //Starts listening
     public Server(int port) throws IOException{

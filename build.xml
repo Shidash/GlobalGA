@@ -5,14 +5,17 @@
   <target name="compile" description="compile the source " >
     <javac srcdir="${src}" destdir="${src}">
     <classpath>
-        <pathelement location="./java-otr/classes/"/>
+      <pathelement location="java-otr/classes"/>
 	<pathelement location = "."/>
     </classpath>
     </javac>
   </target>
 
   <target name="jar" depends="compile" description="generate the jar" >
-    <jar jarfile="ClientJAR.jar" basedir="src"/>
+    <jar destfile="ClientJAR.jar">
+      <fileset dir = "src" />
+      <fileset dir = "java-otr/classes" />
+    </jar>
   </target>
 
   <target name="clean" description="clean up" >
