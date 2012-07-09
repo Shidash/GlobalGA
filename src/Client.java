@@ -5,8 +5,8 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-//import ca.uwaterloo.crysp.otr.*;
-
+import ca.uwaterloo.crysp.otr.*;
+import ca.uwaterloo.crysp.otr.iface.*;
 
 public class Client extends Panel implements Runnable
 {
@@ -19,7 +19,7 @@ public class Client extends Panel implements Runnable
     private JTabbedPane tabbar = new JTabbedPane();
     private int i = 1;
     private String[] roomlist = new String[99999];
-    private ArrayList<TextArea> taarray = new ArrayList<TextArea>();
+    private ArrayList<JTextArea> taarray = new ArrayList<JTextArea>();
 
     public Client(String host, int port){
 	GridBagLayout gbl = new GridBagLayout();
@@ -27,8 +27,10 @@ public class Client extends Panel implements Runnable
 	GridBagConstraints gbc = new GridBagConstraints();
 
 	//Adds main text area
-	taarray.add(new TextArea());
+	taarray.add(new JTextArea());
 	tabbedPane.addTab("Main", taarray.get(i-1));
+	(taarray.get(i-1)).setLineWrap(true);
+	(taarray.get(i-1)).setWrapStyleWord(true);
 
 	//Makes sidebar
 	tabbar.addTab("Users", null);
@@ -69,7 +71,7 @@ public class Client extends Panel implements Runnable
 	gbc.gridy = 1;
 	gbc.gridwidth = 1;
 	gbc.gridheight = 1;
-	gbc.weightx = 90.0;
+	gbc.weightx = 80.0;
 	gbc.weighty = 1.0;
 	gbc.anchor = GridBagConstraints.CENTER;
 	gbc.fill = GridBagConstraints.BOTH;
@@ -84,7 +86,7 @@ public class Client extends Panel implements Runnable
 	gbc.gridy = 1;
 	gbc.gridwidth = 1;
 	gbc.gridheight = 1;
-	gbc.weightx = 10.0;
+	gbc.weightx = 20.0;
 	gbc.weighty = 1.0;
 	gbc.anchor = GridBagConstraints.CENTER;
 	gbc.fill = GridBagConstraints.BOTH;
@@ -114,7 +116,7 @@ public class Client extends Panel implements Runnable
 	    System.out.println("connected to "+socket);
 	    din = new DataInputStream(socket.getInputStream());
 	    dout = new DataOutputStream(socket.getOutputStream());
-
+	   
 	    new Thread(this).start();
 	} catch(IOException ie) {
 	    System.out.println(ie);
@@ -143,7 +145,9 @@ public class Client extends Panel implements Runnable
 		    messarray = message.split(";", 2);
 		    roomlist[i-1] = messarray[1];
 		    i++;
-		    taarray.add(new TextArea());
+		    taarray.add(new JTextArea());
+		    (taarray.get(i-1)).setLineWrap(true);
+		    (taarray.get(i-1)).setWrapStyleWord(true);
 		    tabbedPane.addTab(roomlist[i-2], taarray.get(i-1));
 		}
 		//Process the message and send it to the appropriate room
@@ -157,7 +161,7 @@ public class Client extends Panel implements Runnable
 			}
 		    }
 		    if(flag == 0){
-			(taarray.get(0)).append(message+"\n");
+			(taarray.get(0)).append(message + "\n");
 		    }
 		}
 	    }

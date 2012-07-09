@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import ca.uwaterloo.crysp.otr.*;
+import ca.uwaterloo.crysp.otr.iface.*;
 
 public class Server
 {
@@ -18,13 +20,13 @@ public class Server
     private String password;
     private ArrayList<Hashtable<String, Object>> rooms = new ArrayList<Hashtable<String, Object>>();
     Hashtable roomlist = new Hashtable();
-
+    
     //Starts listening
     public Server(int port) throws IOException{
 	listen(port);
     }
 
-    //Listener that accepts connections and autoassigns nicknames                                                                 
+    //Listener that accepts connections and autoassigns nicknames                                                
     private void listen(int port) throws IOException{
 	ss = new ServerSocket(port);
 	System.out.println("Listening on "+ss);

@@ -3,7 +3,12 @@
   <property name="jar"  location="."/>
 
   <target name="compile" description="compile the source " >
-    <javac srcdir="${src}" destdir="${src}"/>
+    <javac srcdir="${src}" destdir="${src}">
+    <classpath>
+        <pathelement location="./java-otr/classes/"/>
+	<pathelement location = "."/>
+    </classpath>
+    </javac>
   </target>
 
   <target name="jar" depends="compile" description="generate the jar" >
