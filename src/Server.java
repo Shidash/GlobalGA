@@ -12,7 +12,6 @@ public class Server
     private Hashtable outputStreams = new Hashtable();
     private Hashtable users = new Hashtable();
     private Hashtable regnames = new Hashtable();
-    private Hashtable nameStreams = new Hashtable();
     String name;
     int numuser = 0;
     String room;
@@ -42,7 +41,6 @@ public class Server
 	    outputStreams.put(socket, dout);
 	    name = "nick" + numuser;
 	    users.put(name, name);
-	    nameStreams.put(socket, name);
 	    numuser++;
 	    callback = new LocalCallback(socket);
 	    System.out.println(socket);
@@ -113,8 +111,6 @@ public class Server
 	else if(!users.containsKey(name) && !regnames.containsKey(name)){
 	    users.remove(oldname);
 	    users.put(name, name);
-	    nameStreams.remove(socket);
-	    nameStreams.put(socket, name);
 	    sendToAll(oldname + " has changed their name to " + name);
 	    return name;
 	}
@@ -150,8 +146,6 @@ public class Server
 	    if(userpassarray[1].compareTo((regnames.get(userpassarray[0])).toString()) == 0){
 		users.remove(oldname);
 		users.put(name, name);
-		nameStreams.remove(socket);
-		nameStreams.put(socket, name);
 		sendToAll(oldname + " has changed their name to " + userpassarray[0]);
 		return userpassarray[0];
 	    }
@@ -300,9 +294,8 @@ public class Server
     }
 
     //Removes the name of someone who has left from the userlist
-    public void removeUser(String name, Socket socket){
+    public void removeUser(String name){
 	users.remove(name);
-	nameStreams.remove(socket);
     }
 
     //Checks if the userlist has a particular name in it

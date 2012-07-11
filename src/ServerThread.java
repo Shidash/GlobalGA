@@ -90,7 +90,7 @@ public class ServerThread extends Thread
 	    ie.printStackTrace();
 	} finally {
 	    //Cleanup
-	    server.removeUser(name, socket);
+	    server.removeUser(name);
 	    server.removeConnection(socket);
 	}
     }
