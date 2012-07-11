@@ -22,6 +22,7 @@ public class Server
     private ArrayList<Hashtable<String, Object>> rooms = new ArrayList<Hashtable<String, Object>>();
     Hashtable roomlist = new Hashtable();
     private UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
+    private OTRCallbacks callback;
     
     //Starts listening
     public Server(int port) throws IOException{
@@ -41,6 +42,7 @@ public class Server
 	    name = "nick" + numuser;
 	    users.put(name, name);
 	    numuser++;
+	    callback = new LocalCallback(socket);
 	    new ServerThread(this, socket);
 	}
     }

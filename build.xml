@@ -25,6 +25,7 @@
     <delete file = "${src}/Client$1.class"/>
     <delete file = "${src}/Client$2.class"/>
     <delete file = "${src}/ClientApplet.class"/>
+    <delete file = "${src}/LocalCallback.class"/>
     <delete file="ClientJAR.jar"/>
   </target>
 </project>

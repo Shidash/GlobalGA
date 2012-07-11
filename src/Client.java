@@ -21,6 +21,7 @@ public class Client extends Panel implements Runnable
     private String[] roomlist = new String[99999];
     private ArrayList<JTextArea> taarray = new ArrayList<JTextArea>();
     private UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
+    private OTRCallbacks callback;
 
     public Client(String host, int port){
 	GridBagLayout gbl = new GridBagLayout();
@@ -117,7 +118,7 @@ public class Client extends Panel implements Runnable
 	    System.out.println("connected to "+socket);
 	    din = new DataInputStream(socket.getInputStream());
 	    dout = new DataOutputStream(socket.getOutputStream());
-	   
+	    callback = new LocalCallback(socket);
 	    new Thread(this).start();
 	} catch(IOException ie) {
 	    System.out.println(ie);
@@ -126,8 +127,15 @@ public class Client extends Panel implements Runnable
 
     //Processes messages
     public void processMessage(String message){
+	String encrypted = null;
 	try{
-	    dout.writeUTF(message);
+	    try{
+		//Encrypt the message
+		encrypted = us.messageSending("Client", "GlobalGA", "Server", message, null, Policy.FRAGMENT_SEND_SKIP, callback);
+	    } catch(Exception e){
+		System.out.println(e);
+	    }
+	    dout.writeUTF(encrypted);
 	    tf.setText("");
 	} catch(IOException ie) {
 	    System.out.println(ie);
@@ -162,7 +170,7 @@ public class Client extends Panel implements Runnable
 			}
 		    }
 		    if(flag == 0){
-			(taarray.get(0)).append(message + "\n");
+		      (taarray.get(0)).append(message+"\n");
 		    }
 		}
 	    }
