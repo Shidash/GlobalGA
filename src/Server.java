@@ -12,6 +12,7 @@ public class Server
     private Hashtable outputStreams = new Hashtable();
     private Hashtable users = new Hashtable();
     private Hashtable regnames = new Hashtable();
+    private Hashtable nameStreams = new Hashtable();
     String name;
     int numuser = 0;
     String room;
@@ -21,8 +22,8 @@ public class Server
     private String password;
     private ArrayList<Hashtable<String, Object>> rooms = new ArrayList<Hashtable<String, Object>>();
     Hashtable roomlist = new Hashtable();
-    private UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
-    private OTRCallbacks callback;
+    UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
+    OTRCallbacks callback;
     
     //Starts listening
     public Server(int port) throws IOException{
@@ -41,6 +42,7 @@ public class Server
 	    outputStreams.put(socket, dout);
 	    name = "nick" + numuser;
 	    users.put(name, name);
+	    nameStreams.put(socket, name);
 	    numuser++;
 	    callback = new LocalCallback(socket);
 	    new ServerThread(this, socket);
@@ -110,6 +112,8 @@ public class Server
 	else if(!users.containsKey(name) && !regnames.containsKey(name)){
 	    users.remove(oldname);
 	    users.put(name, name);
+	    nameStreams.remove(socket);
+	    nameStreams.put(socket, name);
 	    sendToAll(oldname + " has changed their name to " + name);
 	    return name;
 	}
@@ -145,6 +149,8 @@ public class Server
 	    if(userpassarray[1].compareTo((regnames.get(userpassarray[0])).toString()) == 0){
 		users.remove(oldname);
 		users.put(name, name);
+		nameStreams.remove(socket);
+		nameStreams.put(socket, name);
 		sendToAll(oldname + " has changed their name to " + userpassarray[0]);
 		return userpassarray[0];
 	    }
@@ -293,13 +299,24 @@ public class Server
     }
 
     //Removes the name of someone who has left from the userlist
-    public void removeUser(String name){
+    public void removeUser(String name, Socket socket){
 	users.remove(name);
+	nameStreams.remove(socket);
     }
 
     //Checks if the userlist has a particular name in it
     public boolean containsKey(String name){
 	return users.containsKey(name);
+    }
+
+    //Send updated name to client
+    public void getName(Socket socket){                                        
+	try{
+	    DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
+	    dout.writeUTF(";name " + nameStreams.get(socket));
+	} catch(IOException ie){
+	    System.out.println(ie);
+	}
     }
 
     static public void main(String args[]) throws Exception{
