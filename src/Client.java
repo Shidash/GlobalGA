@@ -22,7 +22,6 @@ public class Client extends Panel implements Runnable
     private ArrayList<JTextArea> taarray = new ArrayList<JTextArea>();
     private UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
     private OTRCallbacks callback;
-    private String name = "Client";
 
     public Client(String host, int port){
 	GridBagLayout gbl = new GridBagLayout();
@@ -131,23 +130,14 @@ public class Client extends Panel implements Runnable
 	try{
 	    try{
 		//Encrypt the message
-		updateName();
-		encrypted = us.messageSending(name, "GlobalGA", "Server", message, null, Policy.FRAGMENT_SEND_SKIP, callback);
+		int portname = socket.getLocalPort();
+		encrypted = us.messageSending(Integer.toString(portname), "GlobalGA", "Server", message, null, Policy.FRAGMENT_SEND_SKIP, callback);
 	    } catch(Exception e){
 		System.out.println(e);
 	    }
 	    dout.writeUTF(encrypted);
 	    tf.setText("");
 	} catch(IOException ie) {
-	    System.out.println(ie);
-	}
-    }
-
-    //Send /getname to server thread
-    public void updateName(){
-	try{
-	    dout.writeUTF("/getname");
-	} catch(IOException ie){
 	    System.out.println(ie);
 	}
     }
@@ -168,10 +158,6 @@ public class Client extends Panel implements Runnable
 		    (taarray.get(i-1)).setLineWrap(true);
 		    (taarray.get(i-1)).setWrapStyleWord(true);
 		    tabbedPane.addTab(roomlist[i-2], taarray.get(i-1));
-		}
-		else if(message.startsWith("name;")){
-		    messarray = message.split(";", 2);
-		    name = messarray[1];
 		}
 		//Process the message and send it to the appropriate room
 	       else{

@@ -32,8 +32,9 @@ public class ServerThread extends Thread
 	    while(true){
 		//Read the next message                                           
 		String message = din.readUTF();
+		int portname = socket.getPort();
 		try{
-		StringTLV stlv = us.messageReceiving("Server", "GlobalGA", "Client", message, callback);
+		    StringTLV stlv = us.messageReceiving("Server", "GlobalGA", Integer.toString(portname), message, callback);
 		
 		if(stlv!=null){
 		//Process commands
@@ -49,9 +50,6 @@ public class ServerThread extends Thread
 		    }
 		    else if((stlv.msg).startsWith("/create ")){
 			server.createRoom(stlv.msg, socket);
-		    }
-		    else if((stlv.msg).startsWith("/getname ")){
-			server.getName(socket);
 		    }
 		    else if((stlv.msg).startsWith("/join ")){
 			server.joinRoom(stlv.msg, name, socket);

@@ -45,6 +45,7 @@ public class Server
 	    nameStreams.put(socket, name);
 	    numuser++;
 	    callback = new LocalCallback(socket);
+	    System.out.println(socket);
 	    new ServerThread(this, socket);
 	}
     }
@@ -307,16 +308,6 @@ public class Server
     //Checks if the userlist has a particular name in it
     public boolean containsKey(String name){
 	return users.containsKey(name);
-    }
-
-    //Send updated name to client
-    public void getName(Socket socket){                                        
-	try{
-	    DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
-	    dout.writeUTF(";name " + nameStreams.get(socket));
-	} catch(IOException ie){
-	    System.out.println(ie);
-	}
     }
 
     static public void main(String args[]) throws Exception{
