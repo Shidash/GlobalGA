@@ -148,30 +148,39 @@ public class Client extends Panel implements Runnable
 		String message = din.readUTF();
 		String[] messarray;
 		int flag = 0;
+		int portname = socket.getLocalPort();
+		try{
+		    StringTLV stlv = us.messageReceiving(Integer.toString(portname), "GlobalGA", "Server", message, callback);
 
 		//Add a room to the user's room list if they join a room. Also make a tabbed pane.
-		if(message.startsWith("join;")){
-		    messarray = message.split(";", 2);
-		    roomlist[i-1] = messarray[1];
-		    i++;
-		    taarray.add(new JTextArea());
-		    (taarray.get(i-1)).setLineWrap(true);
-		    (taarray.get(i-1)).setWrapStyleWord(true);
-		    tabbedPane.addTab(roomlist[i-2], taarray.get(i-1));
-		}
+		    if(stlv.msg != null){
+			if((stlv.msg).startsWith("join;")){
+			    messarray = (stlv.msg).split(";", 2);
+			    roomlist[i-1] = messarray[1];
+			    i++;
+			    taarray.add(new JTextArea());
+			    (taarray.get(i-1)).setLineWrap(true);
+			    (taarray.get(i-1)).setWrapStyleWord(true);
+			    tabbedPane.addTab(roomlist[i-2], taarray.get(i-1));
+			}
 		//Process the message and send it to the appropriate room
-	       else{
-		    for(int j = 0; j < i; j++){
-			if(message.startsWith(roomlist[j] + " ")){
-			    messarray = message.split(" ", 2);
-			    (taarray.get(j+1)).append(messarray[1]+"\n");
-			    flag = 1;
-			    break;
+			else{
+			    for(int j = 0; j < i; j++){
+				if((stlv.msg).startsWith(roomlist[j] + " ")){
+				    messarray = (stlv.msg).split(" ", 2);
+				    (taarray.get(j+1)).append(messarray[1]+"\n");
+				    flag = 1;
+				    break;
+				}
+			    }
+			    if(flag == 0){
+				(taarray.get(0)).append((stlv.msg)+"\n");
+			    }
 			}
 		    }
-		    if(flag == 0){
-		      (taarray.get(0)).append(message+"\n");
-		    }
+		} catch(Exception e){
+		    e.printStackTrace();
+		    return;
 		}
 	    }
 	} catch(IOException ie) {

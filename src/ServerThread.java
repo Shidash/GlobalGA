@@ -28,7 +28,7 @@ public class ServerThread extends Thread
     public void run(){
 	try{
 	    DataInputStream din = new DataInputStream(socket.getInputStream());
-
+	    
 	    while(true){
 		//Read the next message                                           
 		String message = din.readUTF();
@@ -38,51 +38,52 @@ public class ServerThread extends Thread
 		
 		if(stlv!=null){
 		//Process commands
-		    if((stlv.msg).charAt(0) == '/'){
-		    if((stlv.msg).startsWith("/nick ")){
-			name = server.addUser(stlv.msg, name, socket);
-		    }
-		    else if((stlv.msg).startsWith("/register ")){
-			name = server.registerUser(stlv.msg, name, socket);
-		    }
-		    else if((stlv.msg).startsWith("/identify ")){
-			name = server.identUser(stlv.msg, name, socket);
-		    }
-		    else if((stlv.msg).startsWith("/create ")){
-			server.createRoom(stlv.msg, socket);
-		    }
-		    else if((stlv.msg).startsWith("/join ")){
-			server.joinRoom(stlv.msg, name, socket);
-		    }
-		    else if((stlv.msg).startsWith("/part ")){
-			server.partRoom(stlv.msg, name, socket);
-		    }
-		    //Pre-process a message to a room
-		    else if((stlv.msg).startsWith("/message ")){
-			message = (stlv.msg).substring(9);
-			chaninfo = message.split(" ");
-			roomnum = Integer.parseInt((server.roomlist.get(chaninfo[0])).toString());
-			messagelen = chaninfo.length;
-			for(int i = 1; i < messagelen; i++){
-			    if(i == 1){
-				tempmessage = chaninfo[1];
-			    }
-			    else{
-				tempmessage = tempmessage + " " + chaninfo[i];
-			    }
+		    message = stlv.msg;
+		    if(message.charAt(0) == '/'){
+			if(message.startsWith("/nick ")){
+			    name = server.addUser(message, name, socket);
 			}
-			server.sendToChannel(name + ": " + tempmessage, roomnum, name, socket, chaninfo[0]);
+			else if(message.startsWith("/register ")){
+			    name = server.registerUser(message, name, socket);
+			}
+			else if(message.startsWith("/identify ")){
+			    name = server.identUser(message, name, socket);
+			}
+			else if(message.startsWith("/create ")){
+			    server.createRoom(message, socket);
+			}
+			else if(message.startsWith("/join ")){
+			    server.joinRoom(message, name, socket);
+			}
+			else if(message.startsWith("/part ")){
+			    server.partRoom(message, name, socket);
+			}
+		    //Pre-process a message to a room
+			else if(message.startsWith("/message ")){
+			    message = message.substring(9);
+			    chaninfo = message.split(" ");
+			    roomnum = Integer.parseInt((server.roomlist.get(chaninfo[0])).toString());
+			    messagelen = chaninfo.length;
+			    for(int i = 1; i < messagelen; i++){
+				if(i == 1){
+				    tempmessage = chaninfo[1];
+				}
+				else{
+				    tempmessage = tempmessage + " " + chaninfo[i];
+				}
+			    }
+			    server.sendToChannel(name + ": " + tempmessage, roomnum, name, socket, chaninfo[0]);
+			}
 		    }
-		}
 		//Send a message to the main channel
-		else{
-		    message = name+ ": " + stlv.msg;
-		    System.out.println("Sending "+message);
-		    server.sendToAll(message);
-		}
+		    else{
+			message = name+ ": " + message;
+			System.out.println("Sending "+message);
+			server.sendToAll(message);
+		    }
 		}
 		} catch (Exception e){
-		    e.printStackTrace();
+	    	    e.printStackTrace();
 		}
 	    }
 	} catch(EOFException ie) {

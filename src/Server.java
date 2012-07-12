@@ -43,7 +43,6 @@ public class Server
 	    users.put(name, name);
 	    numuser++;
 	    callback = new LocalCallback(socket);
-	    System.out.println(socket);
 	    new ServerThread(this, socket);
 	}
     }
@@ -57,11 +56,23 @@ public class Server
     void sendToAll(String message){
 	synchronized(outputStreams){
 	    //For each client
+	    Enumeration keys = outputStreams.keys();
 	    for(Enumeration e = getOutputStreams(); e.hasMoreElements(); ){
 		DataOutputStream dout = (DataOutputStream)e.nextElement();
-	       
+		Socket socket = (Socket)keys.nextElement();
+		String encrypted = "";
+
 		try{
-		    dout.writeUTF(message);
+		    try{
+			//Encryption and sending
+			int portnum = socket.getPort();
+			String sendto = Integer.toString(portnum);
+			encrypted = us.messageSending("Server", "GlobalGA", sendto, message, null, Policy.FRAGMENT_SEND_SKIP, callback);
+		    } catch (Exception exep){
+			exep.printStackTrace();
+			return;
+		    }
+		    dout.writeUTF(encrypted);
 		} catch(IOException ie) {
 		    System.out.println(ie);
 		}
@@ -271,10 +282,24 @@ public class Server
 	if((rooms.get(roomnumber-1)).containsKey(currentname)){
 	    synchronized(rooms.get(roomnumber-1)){
 		//Get all streams and write to them
+		Enumeration keys = (rooms.get(roomnumber-1)).keys();
 		for(Enumeration e = getChannelStreams(roomnumber); e.hasMoreElements(); ){
 		    DataOutputStream dout = (DataOutputStream)e.nextElement();
+		    Socket socketsend = (Socket)keys.nextElement();
+		    String encrypted = "";
+
 		    try{
-			dout.writeUTF(roomname + " " + message);
+			try{
+			    //Encryption and sending      
+                            int portnum = socketsend.getPort();
+			    String sendto = Integer.toString(portnum);
+			    encrypted = us.messageSending("Server", "GlobalGA", sendto, roomname + " " + message, null, Policy.FRAGMENT_SEND_SKIP, callback);
+			} catch (Exception exep){
+			    exep.printStackTrace();
+			    return;
+			}
+
+			dout.writeUTF(encrypted);
 		    } catch(IOException ie){
 			System.out.println(ie);
 		    }

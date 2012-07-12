@@ -18,7 +18,7 @@ class LocalCallback implements OTRCallbacks{
 	    if(msg==null){
 		return;
 	    }
-            System.out.println("Sending message to the recipient:" +msg.length()+":"+msg);
+            System.out.println("Sending message to the recipient: " +msg.length()+" : "+msg);
             out.println(msg);
             out.flush();
         }
