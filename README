@@ -1,9 +1,9 @@
 To compile and run:
 1. Type 'ant' to compile. Type 'ant clean' to clean up the files. 
 
-If you run into trouble, be sure you have the Java Swing and OTR libraries. Also be sure you are running Java Sun as the Java OTR library requires this.
+If you run into trouble, be sure you have the Java Swing library.
 
-2. To run the program, type 'java -cp ../java-otr/classes:. Server 9001' while in the src directory. Port 9001 is the default specified in the included html file.
+2. To run the program, type 'java Server 9001' while in the src directory. Port 9001 is the default specified in the included html file.
 
 3. Once it is running, go to the included html file in a browser. It should connect to the server automatically.
 

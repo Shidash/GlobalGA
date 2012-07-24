@@ -1,8 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import ca.uwaterloo.crysp.otr.*;
-import ca.uwaterloo.crysp.otr.iface.*;
 
 
 public class Server
@@ -12,6 +10,7 @@ public class Server
     private Hashtable outputStreams = new Hashtable();
     private Hashtable users = new Hashtable();
     private Hashtable regnames = new Hashtable();
+    private Hashtable temptable = new Hashtable();
     String name;
     int numuser = 0;
     String room;
@@ -21,9 +20,7 @@ public class Server
     private String password;
     private ArrayList<Hashtable<String, Object>> rooms = new ArrayList<Hashtable<String, Object>>();
     Hashtable roomlist = new Hashtable();
-    UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
-    OTRCallbacks callback;
-    
+      
     //Starts listening
     public Server(int port) throws IOException{
 	listen(port);
@@ -42,7 +39,6 @@ public class Server
 	    name = "nick" + numuser;
 	    users.put(name, name);
 	    numuser++;
-	    callback = new LocalCallback(socket);
 	    new ServerThread(this, socket);
 	}
     }
@@ -50,6 +46,19 @@ public class Server
     //Get all output streams (one per client)
     Enumeration getOutputStreams() {
 	return outputStreams.elements();
+    }
+    
+    void trackTemp(String message, String name, Socket socket){
+	String tempstring = message.substring(12);
+	int temp = Integer.parseInt(tempstring);
+	
+	if(!temptable.containsKey(name)){
+	    temptable.put(name, temp);
+	}
+	else{
+	    temptable.remove(name);
+	    temptable.put(name, temp);
+	}
     }
 
     //Send a message to all clients (the main channel)
@@ -63,16 +72,7 @@ public class Server
 		String encrypted = "";
 
 		try{
-		    try{
-			//Encryption and sending
-			int portnum = socket.getPort();
-			String sendto = Integer.toString(portnum);
-			encrypted = us.messageSending("Server", "GlobalGA", sendto, message, null, Policy.FRAGMENT_SEND_SKIP, callback);
-		    } catch (Exception exep){
-			exep.printStackTrace();
-			return;
-		    }
-		    dout.writeUTF(encrypted);
+		    dout.writeUTF(message);
 		} catch(IOException ie) {
 		    System.out.println(ie);
 		}
@@ -282,24 +282,11 @@ public class Server
 	if((rooms.get(roomnumber-1)).containsKey(currentname)){
 	    synchronized(rooms.get(roomnumber-1)){
 		//Get all streams and write to them
-		Enumeration keys = (rooms.get(roomnumber-1)).keys();
 		for(Enumeration e = getChannelStreams(roomnumber); e.hasMoreElements(); ){
 		    DataOutputStream dout = (DataOutputStream)e.nextElement();
-		    Socket socketsend = (Socket)keys.nextElement();
-		    String encrypted = "";
 
 		    try{
-			try{
-			    //Encryption and sending      
-                            int portnum = socketsend.getPort();
-			    String sendto = Integer.toString(portnum);
-			    encrypted = us.messageSending("Server", "GlobalGA", sendto, roomname + " " + message, null, Policy.FRAGMENT_SEND_SKIP, callback);
-			} catch (Exception exep){
-			    exep.printStackTrace();
-			    return;
-			}
-
-			dout.writeUTF(encrypted);
+			dout.writeUTF(message);
 		    } catch(IOException ie){
 			System.out.println(ie);
 		    }

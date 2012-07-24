@@ -1,7 +1,5 @@
 import java.io.*;
 import java.net.*;
-import ca.uwaterloo.crysp.otr.*;
-import ca.uwaterloo.crysp.otr.iface.*;
 
 public class ServerThread extends Thread
 {
@@ -12,8 +10,6 @@ public class ServerThread extends Thread
     int roomnum;
     int messagelen;
     String tempmessage;
-    private UserState us;
-    private OTRCallbacks callback;
 
     //Initialize a server thread
     public ServerThread(Server server, Socket socket){
@@ -21,8 +17,6 @@ public class ServerThread extends Thread
         this.socket = socket;
         start();
 	name = server.name;
-	us = server.us;
-	callback = server.callback;
     }
 
     public void run(){
@@ -33,12 +27,8 @@ public class ServerThread extends Thread
 		//Read the next message                                           
 		String message = din.readUTF();
 		int portname = socket.getPort();
-		try{
-		    StringTLV stlv = us.messageReceiving("Server", "GlobalGA", Integer.toString(portname), message, callback);
-		
-		if(stlv!=null){
+	  
 		//Process commands
-		    message = stlv.msg;
 		    if(message.charAt(0) == '/'){
 			if(message.startsWith("/nick ")){
 			    name = server.addUser(message, name, socket);
@@ -57,6 +47,9 @@ public class ServerThread extends Thread
 			}
 			else if(message.startsWith("/part ")){
 			    server.partRoom(message, name, socket);
+			}
+			else if(message.startsWith("/changetemp ")){
+			    server.trackTemp(message, name, socket);
 			}
 		    //Pre-process a message to a room
 			else if(message.startsWith("/message ")){
@@ -81,12 +74,7 @@ public class ServerThread extends Thread
 			System.out.println("Sending "+message);
 			server.sendToAll(message);
 		    }
-		}
-		} catch (Exception e){
-	    	    e.printStackTrace();
-		}
 	    }
-	} catch(EOFException ie) {
 	} catch(IOException ie) {
 	    ie.printStackTrace();
 	} finally {

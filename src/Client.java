@@ -1,12 +1,11 @@
 import java.applet.*;
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import ca.uwaterloo.crysp.otr.*;
-import ca.uwaterloo.crysp.otr.iface.*;
 
 public class Client extends Panel implements Runnable
 {
@@ -20,8 +19,8 @@ public class Client extends Panel implements Runnable
     private int i = 1;
     private String[] roomlist = new String[99999];
     private ArrayList<JTextArea> taarray = new ArrayList<JTextArea>();
-    private UserState us = new UserState(new ca.uwaterloo.crysp.otr.crypt.jca.JCAProvider());
-    private OTRCallbacks callback;
+    int temp;
+    private JSlider tempcheck = new JSlider(JSlider.VERTICAL, 0, 100, temp);
 
     public Client(String host, int port){
 	GridBagLayout gbl = new GridBagLayout();
@@ -33,10 +32,28 @@ public class Client extends Panel implements Runnable
 	tabbedPane.addTab("Main", taarray.get(i-1));
 	(taarray.get(i-1)).setLineWrap(true);
 	(taarray.get(i-1)).setWrapStyleWord(true);
+	
+	tempcheck.setMajorTickSpacing(10);
+	tempcheck.setPaintTicks(true);
+	Hashtable labelTable = new Hashtable();
+	labelTable.put(0, new JLabel(" Strongly Disagree"));
+	labelTable.put(50, new JLabel(" Neutral") );
+	labelTable.put(100, new JLabel(" Strongly Agree") );
+	tempcheck.setLabelTable( labelTable );
+	tempcheck.setPaintLabels(true);
+	tempcheck.addChangeListener(new ChangeListener() {
+		public void stateChanged(ChangeEvent event){
+		    JSlider tempcheck = (JSlider)event.getSource();
+		    if(!tempcheck.getValueIsAdjusting()){
+			processMessage("/changetemp " + Integer.toString(tempcheck.getValue()));
+		    }
+		}
+	    });
 
 	//Makes sidebar
 	tabbar.addTab("Users", null);
 	tabbar.addTab("Channels", null);
+	tabbar.addTab("Vote", tempcheck);
 	
 	//Adds tabbedPane to the layout
 	gbc.gridx = 0;
@@ -117,7 +134,6 @@ public class Client extends Panel implements Runnable
 	    socket = new Socket(host, port);
 	    din = new DataInputStream(socket.getInputStream());
 	    dout = new DataOutputStream(socket.getOutputStream());
-	    callback = new LocalCallback(socket);
 	    new Thread(this).start();
 	} catch(IOException ie) {
 	    System.out.println(ie);
@@ -126,16 +142,8 @@ public class Client extends Panel implements Runnable
 
     //Processes messages
     public void processMessage(String message){
-	String encrypted = null;
 	try{
-	    try{
-		//Encrypt the message
-		int portname = socket.getLocalPort();
-		encrypted = us.messageSending(Integer.toString(portname), "GlobalGA", "Server", message, null, Policy.FRAGMENT_SEND_SKIP, callback);
-	    } catch(Exception e){
-		System.out.println(e);
-	    }
-	    dout.writeUTF(encrypted);
+	    dout.writeUTF(message);
 	    tf.setText("");
 	} catch(IOException ie) {
 	    System.out.println(ie);
@@ -149,13 +157,11 @@ public class Client extends Panel implements Runnable
 		String[] messarray;
 		int flag = 0;
 		int portname = socket.getLocalPort();
-		try{
-		    StringTLV stlv = us.messageReceiving(Integer.toString(portname), "GlobalGA", "Server", message, callback);
 
 		//Add a room to the user's room list if they join a room. Also make a tabbed pane.
-		    if(stlv.msg != null){
-			if((stlv.msg).startsWith("join;")){
-			    messarray = (stlv.msg).split(";", 2);
+		    if(message != null){
+			if((message).startsWith("join;")){
+			    messarray = (message).split(";", 2);
 			    roomlist[i-1] = messarray[1];
 			    i++;
 			    taarray.add(new JTextArea());
@@ -166,22 +172,18 @@ public class Client extends Panel implements Runnable
 		//Process the message and send it to the appropriate room
 			else{
 			    for(int j = 0; j < i; j++){
-				if((stlv.msg).startsWith(roomlist[j] + " ")){
-				    messarray = (stlv.msg).split(" ", 2);
+				if(message.startsWith(roomlist[j] + " ")){
+				    messarray = message.split(" ", 2);
 				    (taarray.get(j+1)).append(messarray[1]+"\n");
 				    flag = 1;
 				    break;
 				}
 			    }
 			    if(flag == 0){
-				(taarray.get(0)).append((stlv.msg)+"\n");
+				(taarray.get(0)).append(message+"\n");
 			    }
 			}
 		    }
-		} catch(Exception e){
-		    e.printStackTrace();
-		    return;
-		}
 	    }
 	} catch(IOException ie) {
 	    System.out.println(ie);

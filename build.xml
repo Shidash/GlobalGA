@@ -5,7 +5,6 @@
   <target name="compile" description="compile the source " >
     <javac srcdir="${src}" destdir="${src}">
     <classpath>
-      <pathelement location="java-otr/classes"/>
 	<pathelement location = "."/>
     </classpath>
     </javac>
@@ -14,7 +13,6 @@
   <target name="jar" depends="compile" description="generate the jar" >
     <jar destfile="ClientJAR.jar">
       <fileset dir = "src" />
-      <fileset dir = "java-otr/classes" />
     </jar>
   </target>
 
@@ -24,8 +22,8 @@
     <delete file = "${src}/Client.class"/>
     <delete file = "${src}/Client$1.class"/>
     <delete file = "${src}/Client$2.class"/>
+    <delete file = "${src}/Client$3.class"/>
     <delete file = "${src}/ClientApplet.class"/>
-    <delete file = "${src}/LocalCallback.class"/>
     <delete file="ClientJAR.jar"/>
   </target>
 </project>

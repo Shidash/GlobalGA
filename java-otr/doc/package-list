@@ -1,9 +1,0 @@
-ca.uwaterloo.crysp.otr
-ca.uwaterloo.crysp.otr.client
-ca.uwaterloo.crysp.otr.crypt
-ca.uwaterloo.crysp.otr.crypt.jca
-ca.uwaterloo.crysp.otr.crypt.rim
-ca.uwaterloo.crysp.otr.demo
-ca.uwaterloo.crysp.otr.iface
-ca.uwaterloo.crysp.otr.message
-ca.uwaterloo.crysp.otr.test
