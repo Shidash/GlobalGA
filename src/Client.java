@@ -22,6 +22,7 @@ public class Client extends Panel implements Runnable
     int temp;
     private JSlider tempcheck = new JSlider(JSlider.VERTICAL, 0, 100, temp);
 
+
     public Client(String host, int port){
 	GridBagLayout gbl = new GridBagLayout();
 	setLayout(gbl);
@@ -50,18 +51,18 @@ public class Client extends Panel implements Runnable
 		}
 	    });
 
-	//Makes sidebar
-	tabbar.addTab("Users", null);
-	tabbar.addTab("Channels", null);
-	tabbar.addTab("Vote", tempcheck);
+	//Setup tabbar
+	tabbar.addTab("Info", new TextArea());
+	tabbar.addTab("Decide", null);
+	tabbar.addTab("Think", null);
 	
 	//Adds tabbedPane to the layout
 	gbc.gridx = 0;
 	gbc.gridy = 0;
-	gbc.gridwidth = 1;
+	gbc.gridwidth = 4;
 	gbc.gridheight = 1;
-	gbc.weightx = 80.0;
-	gbc.weighty = 99;
+	gbc.weightx = 50.0;
+	gbc.weighty = 99.0;
 	gbc.anchor = GridBagConstraints.CENTER;
 	gbc.fill = GridBagConstraints.BOTH;
 	gbc.ipadx = 0;
@@ -71,12 +72,12 @@ public class Client extends Panel implements Runnable
 	add(tabbedPane);
 
 	//Adds the sidebar tabbar to the layout
-        gbc.gridx = 1;
+        gbc.gridx = 4;
         gbc.gridy = 0;
-	gbc.gridwidth = 1;
-        gbc.gridheight = 1;
-        gbc.weightx = 20.0;
-        gbc.weighty = 99;
+	gbc.gridwidth = 4;
+        gbc.gridheight = 2;
+        gbc.weightx = 50.0;
+        gbc.weighty = 100.0;
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.ipadx = 0;
@@ -88,9 +89,9 @@ public class Client extends Panel implements Runnable
 	//Adds the text field tf to the layout
 	gbc.gridx = 0;
 	gbc.gridy = 1;
-	gbc.gridwidth = 1;
+	gbc.gridwidth = 3;
 	gbc.gridheight = 1;
-	gbc.weightx = 80.0;
+	gbc.weightx = 45.0;
 	gbc.weighty = 1.0;
 	gbc.anchor = GridBagConstraints.CENTER;
 	gbc.fill = GridBagConstraints.BOTH;
@@ -101,11 +102,11 @@ public class Client extends Panel implements Runnable
 	add(tf);
 
 	//Adds the send button to the layout
-	gbc.gridx = 1;
+	gbc.gridx = 3;
 	gbc.gridy = 1;
 	gbc.gridwidth = 1;
 	gbc.gridheight = 1;
-	gbc.weightx = 20.0;
+	gbc.weightx = 5.0;
 	gbc.weighty = 1.0;
 	gbc.anchor = GridBagConstraints.CENTER;
 	gbc.fill = GridBagConstraints.BOTH;

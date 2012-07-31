@@ -20,6 +20,7 @@ public class Server
     private String password;
     private ArrayList<Hashtable<String, Object>> rooms = new ArrayList<Hashtable<String, Object>>();
     Hashtable roomlist = new Hashtable();
+    double tempavg;
       
     //Starts listening
     public Server(int port) throws IOException{
@@ -47,10 +48,17 @@ public class Server
     Enumeration getOutputStreams() {
 	return outputStreams.elements();
     }
+
+    //Get all the temperatures reported
+    Enumeration getTempTable() {
+        return temptable.elements();
+    }
     
+    //Updates temp check temperature and does calculations
     void trackTemp(String message, String name, Socket socket){
 	String tempstring = message.substring(12);
-	int temp = Integer.parseInt(tempstring);
+	double temp = Double.parseDouble(tempstring);
+	double numtemp;
 	
 	if(!temptable.containsKey(name)){
 	    temptable.put(name, temp);
@@ -59,6 +67,12 @@ public class Server
 	    temptable.remove(name);
 	    temptable.put(name, temp);
 	}
+	
+	tempavg = 0;
+	for(Enumeration e = getTempTable(); e.hasMoreElements();){
+	    tempavg = tempavg + (double)e.nextElement();
+	}
+	tempavg = tempavg/(temptable.size());
     }
 
     //Send a message to all clients (the main channel)
