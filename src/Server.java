@@ -211,8 +211,7 @@ public class Server
             }
 	}
 	else if(!roomlist.containsKey(room)){
-	    roomnum++;
-	    roomlist.put(room, roomnum);
+	    roomlist.put(room, roomlist.size()+1);
 	    rooms.add(new Hashtable());
 	}
     }
@@ -262,8 +261,27 @@ public class Server
 	    roomnum = Integer.parseInt((roomlist.get(room)).toString());
 	    //Removes the user from the channel
 	    if((rooms.get(roomnum-1)).containsKey(currentname)){
-		sendToChannel(currentname + " has parted the channel " + room + "." , roomnum, currentname, socket, room);
 		(rooms.get(roomnum-1)).remove(currentname);
+
+		//Remove room if it is empty
+		if((rooms.get(roomnum-1)).size() == 0){
+		    rooms.remove(roomnum-1);
+		    roomlist.remove(room);
+		    
+		    //Reindex the rooms
+		    Enumeration keys = roomlist.keys();
+		    while(keys.hasMoreElements()){
+			String currkey = (String)keys.nextElement();
+			if((int)roomlist.get(currkey) >= roomnum+1){
+			    int save = (int)roomlist.get(currkey);
+			    roomlist.remove(currkey);
+			    roomlist.put(currkey, save-1);
+			} 
+		    }
+		}
+		else{
+		    sendToChannel("/parted " + currentname + " has parted the channel " + room + "." , roomnum, currentname, socket, room);
+		}
 	    }
 	    //The user is not in the channel
 	    else{
@@ -300,7 +318,7 @@ public class Server
 		    DataOutputStream dout = (DataOutputStream)e.nextElement();
 
 		    try{
-			dout.writeUTF(message);
+			dout.writeUTF(roomname + " " + message);
 		    } catch(IOException ie){
 			System.out.println(ie);
 		    }
@@ -309,13 +327,28 @@ public class Server
 	}
 	//Stop users from writing to a channel they are not in
 	else{
-	    try{
-		DataOutputStream dout2 = new DataOutputStream(socket.getOutputStream());
-                dout2.writeUTF("You are not in the channel you are trying to send a message to. You cannot send a message to a channel you are not in.");
-            } catch(IOException ie) {
-                System.out.println(ie);
-            }
-   
+	    if(message.startsWith("/parted ")){
+		message = message.substring(8);
+		synchronized(rooms.get(roomnumber-1)){
+		    //Get all streams and write to them        
+		    for(Enumeration e = getChannelStreams(roomnumber); e.hasMoreElements(); ){
+			DataOutputStream dout = (DataOutputStream)e.nextElement();
+			try{
+			    dout.writeUTF(roomname + " " + message);
+			} catch(IOException ie){
+			    System.out.println(ie);
+			}
+		    }
+		}
+	    }
+	    else{
+		try{
+		    DataOutputStream dout2 = new DataOutputStream(socket.getOutputStream());
+		    dout2.writeUTF("You are not in the channel you are trying to send a message to. You cannot send a message to a channel you are not in.");
+		} catch(IOException ie) {
+		    System.out.println(ie);
+		}
+	    }
 	}
     }
 

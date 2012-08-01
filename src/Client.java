@@ -144,6 +144,9 @@ public class Client extends Panel implements Runnable
     //Processes messages
     public void processMessage(String message){
 	try{
+	    if(message.startsWith("/part ")){
+		exitRoom(message);
+	    }
 	    dout.writeUTF(message);
 	    tf.setText("");
 	} catch(IOException ie) {
@@ -151,6 +154,21 @@ public class Client extends Panel implements Runnable
 	}
     }
 
+    //Removes tabs when exiting room
+    public void exitRoom(String message){
+	for(int j = 0; j < 99999; j++){
+	    if(message.startsWith("/part " + roomlist[j])){
+	        tabbedPane.removeTabAt(j+1);
+		taarray.remove(j+1);
+		for(int k = j+1; k < roomlist.length; k++){
+		    roomlist[k-1] = roomlist[k];
+		    
+		}
+	    }
+	}
+    }
+
+    //Processes received messages
     public void run(){
 	try{
 	    while(true){
