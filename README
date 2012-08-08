@@ -10,9 +10,7 @@ If you run into trouble, be sure you have the Java Swing library.
 
 Commands:
 '/join channelname' to join a channel
-'/part channelname' to leave a channel
 '/create channelname' to create a channel
-'/message channelname message' to send a message to a channel
 '/nick newnick' to change your name
 '/register nick password' to register your name
 '/identify nick passowrd' to identify/sign in

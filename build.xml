@@ -1,9 +1,11 @@
 <project name="GlobalGA" default="jar" basedir=".">  
   <property name="src" location="src"/>
   <property name="jar"  location="."/>
+  <mkdir dir = "build"/>
+  <property name="build" location="build"/>
 
   <target name="compile" description="compile the source " >
-    <javac srcdir="${src}" destdir="${src}">
+    <javac srcdir="${src}" destdir="${build}">
     <classpath>
 	<pathelement location = "."/>
     </classpath>
@@ -12,18 +14,12 @@
 
   <target name="jar" depends="compile" description="generate the jar" >
     <jar destfile="ClientJAR.jar">
-      <fileset dir = "src" />
+      <fileset dir = "build" />
     </jar>
   </target>
 
   <target name="clean" description="clean up" >
-    <delete file = "${src}/Server.class"/>
-    <delete file = "${src}/ServerThread.class"/>
-    <delete file = "${src}/Client.class"/>
-    <delete file = "${src}/Client$1.class"/>
-    <delete file = "${src}/Client$2.class"/>
-    <delete file = "${src}/Client$3.class"/>
-    <delete file = "${src}/ClientApplet.class"/>
+    <delete dir = "${build}"/>
     <delete file="ClientJAR.jar"/>
   </target>
 </project>
