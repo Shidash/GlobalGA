@@ -25,6 +25,19 @@ public class Client extends Panel implements Runnable
     private ArrayList<JTabbedPane> tabbararray = new ArrayList<JTabbedPane>();
     private ArrayList<Button> sendarray = new ArrayList<Button>();
     private ArrayList<TextField> tfarray = new ArrayList<TextField>();
+    private ArrayList<String[]> votelist = new ArrayList<String[]>();
+    private ArrayList<JList> listarray = new ArrayList<JList>();
+    private ArrayList<JTextArea> pollsarray = new ArrayList<JTextArea>();
+    private ArrayList<JSplitPane> votePanearray = new ArrayList<JSplitPane>();
+    private ArrayList<JSplitPane> toparray = new ArrayList <JSplitPane>();
+    private ArrayList<JRadioButton> tempbutton = new ArrayList<JRadioButton>();
+    private ArrayList<JRadioButton> pollbutton = new ArrayList<JRadioButton>();
+    private ArrayList<ButtonGroup> buttongroup = new ArrayList<ButtonGroup>();
+    private ArrayList<JPanel> radiopanel = new ArrayList<JPanel>();
+    private ArrayList<JPanel> cards = new ArrayList<JPanel>();
+    private ArrayList<Button> back = new ArrayList<Button>();
+    //private ArrayList<CardLayout> cl = new ArrayList<CardLayout>();
+    CardLayout cl;
 
     public Client(String host, int port){
 	//Temp check
@@ -79,11 +92,93 @@ public class Client extends Panel implements Runnable
         sparray.add(new JScrollPane(taarray.get(index)));
         (taarray.get(index)).setLineWrap(true);
         (taarray.get(index)).setWrapStyleWord(true);
+
+	//Vote list
+	votelist.add(new String[99999]);
+	listarray.add(new JList(votelist.get(index)));
+	(listarray.get(index)).setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	(listarray.get(index)).setSelectedIndex(0);
+	//list.addListSelectionListener(this);
+
+	cards.add(new JPanel(new CardLayout()));
+
+	//Poll object
+	pollsarray.add(new JTextArea());
+
+	//Setup vote pane
+	votePanearray.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listarray.get(index), pollsarray.get(index)));
+        (votePanearray.get(index)).setDividerLocation(200);
+	(listarray.get(index)).setMinimumSize(new Dimension(100, 50));
+        (pollsarray.get(index)).setMinimumSize(new Dimension(100, 50));
+
+	//Top object
+	tempbutton.add(new JRadioButton("Temperature Check"));
+        (tempbutton.get(index)).setMnemonic(KeyEvent.VK_B);
+        (tempbutton.get(index)).setActionCommand("Temperature Check");
+
+        pollbutton.add(new JRadioButton("Poll"));
+        (pollbutton.get(index)).setMnemonic(KeyEvent.VK_C);
+        (pollbutton.get(index)).setActionCommand("Poll");
+
+	buttongroup.add(new ButtonGroup());
+	(buttongroup.get(index)).add(tempbutton.get(index));
+	(buttongroup.get(index)).add(pollbutton.get(index));
 	
+	//Tempcheck creation
+	(tempbutton.get(index)).addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e){
+		    JPanel temppanel = new JPanel();
+		    (cards.get(i-1)).add(temppanel, "Tempcheck");
+		    cl = (CardLayout)((cards.get(i-1)).getLayout());
+		    cl.show(cards.get(i-1), "Tempcheck");
+		    back.add(new Button("Back"));
+		    temppanel.add(back.get(i-1));
+		    (back.get(i-1)).addActionListener(new ActionListener() {
+			    public void actionPerformed(ActionEvent event){
+				cl.first(cards.get(i-1));
+			    }
+		    });
+		}
+	    });
+
+	//Poll creation
+	(pollbutton.get(index)).addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e){
+		    JPanel pollpanel = new JPanel();
+		    (cards.get(i-1)).add(pollpanel, "poll");
+		    cl = (CardLayout)((cards.get(i-1)).getLayout());
+		    cl.show(cards.get(i-1), "poll");
+		    back.add(new Button("Back"));
+		    pollpanel.add(back.get(i-1));
+                    (back.get(i-1)).addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent event){
+                                cl.first(cards.get(i-1));
+                            }
+			});
+		}
+	    });
+
+	//JPanel radio panel
+	radiopanel.add(new JPanel());
+	JLabel question = new JLabel("Create a new vote:\n");
+	(radiopanel.get(index)).add(question);
+	(radiopanel.get(index)).add(tempbutton.get(index));
+	(radiopanel.get(index)).add(pollbutton.get(index));
+
+	//Setup top of pane
+	toparray.add(new JSplitPane(JSplitPane.VERTICAL_SPLIT, radiopanel.get(index), votePanearray.get(index)));
+	(toparray.get(index)).setDividerLocation(100);
+	(votePanearray.get(index)).setMinimumSize(new Dimension(100, 50));
+	(radiopanel.get(index)).setMinimumSize(new Dimension(100, 15));
+	(radiopanel.get(index)).setPreferredSize(new Dimension(100, 30));
+        (toparray.get(index)).setPreferredSize(new Dimension(500, 400));
+
+	(cards.get(index)).add(toparray.get(index), "Home");
+
 	//Setup tabbar                                                                                                 
         tabbararray.add(new JTabbedPane());
         (tabbararray.get(index)).addTab("Info", new TextArea());
-        (tabbararray.get(index)).addTab("Decide", null);
+        (tabbararray.get(index)).addTab("Decide", cards.get(index));
         (tabbararray.get(index)).addTab("Think", null);
 
         //Adds tabbedarea to the layout                                                                                
