@@ -2,7 +2,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-
 public class Server
 {
     //For accepting new connections
@@ -10,7 +9,8 @@ public class Server
     private Hashtable outputStreams = new Hashtable();
     private Hashtable users = new Hashtable();
     private Hashtable regnames = new Hashtable();
-    private Hashtable temptable = new Hashtable();
+    private ArrayList<ArrayList<Hashtable<String, Double>>> temptable = new ArrayList<ArrayList<Hashtable<String, Double>>>();
+    HashMap<String, ArrayList> userroomlist = new HashMap<String, ArrayList>();
     String name;
     int numuser = 0;
     String room;
@@ -19,9 +19,9 @@ public class Server
     private String[] userpassarray;
     private String password;
     private ArrayList<Hashtable<String, Object>> rooms = new ArrayList<Hashtable<String, Object>>();
-    Hashtable roomlist = new Hashtable();
+    Hashtable<String, Integer> roomlist = new Hashtable<String, Integer>();
     double tempavg;
-      
+
     //Starts listening
     public Server(int port) throws IOException{
 	listen(port);
@@ -31,6 +31,7 @@ public class Server
     private void listen(int port) throws IOException{
 	ss = new ServerSocket(port);
 	System.out.println("Listening on "+ss);
+	temptable.add(new ArrayList<Hashtable<String, Double>>());
 
 	while(true){
 	    Socket socket = ss.accept();
@@ -39,6 +40,7 @@ public class Server
 	    outputStreams.put(socket, dout);
 	    name = "nick" + numuser;
 	    users.put(name, name);
+	    userroomlist.put(name, new ArrayList<String>());
 	    numuser++;
 	    new ServerThread(this, socket);
 	}
@@ -49,30 +51,46 @@ public class Server
 	return outputStreams.elements();
     }
 
-    //Get all the temperatures reported
-    Enumeration getTempTable() {
-        return temptable.elements();
+    void newtempcheck(String message, String name, Socket socket, int roomnum){
+	String tempstring = message.substring(14);
+	String strarray[] = tempstring.split(" ", 2);
+
+	if(roomnum == 0){
+	    (temptable.get(0)).add(new Hashtable());
+	    sendToAll(";newtemp " + Integer.toString((temptable.get(0)).size()-1) + " " + strarray[1]); 
+	}	 
+	else{
+	    (temptable.get(roomnum)).add(new Hashtable());
+	    sendToChannel(";newtemp " + Integer.toString((temptable.get(roomnum)).size()-1) + " " + strarray[1], roomnum, "tempcheck", socket, strarray[0]);
+	}
     }
-    
+        
     //Updates temp check temperature and does calculations
-    void trackTemp(String message, String name, Socket socket){
+    void trackTemp(String message, String name, Socket socket, int roomnum){
 	String tempstring = message.substring(12);
-	double temp = Double.parseDouble(tempstring);
+	String strarray[] = tempstring.split(" ");
+	double temp = Double.parseDouble(strarray[2]);
 	double numtemp;
 	
-	if(!temptable.containsKey(name)){
-	    temptable.put(name, temp);
+	if(!((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).containsKey(name)){
+	    ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).put(name, temp);
 	}
 	else{
-	    temptable.remove(name);
-	    temptable.put(name, temp);
+	    ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).remove(name);
+	    ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).put(name, temp);
 	}
 	
 	tempavg = 0;
-	for(Enumeration e = getTempTable(); e.hasMoreElements();){
+	for(Enumeration e = ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).elements(); e.hasMoreElements();){
 	    tempavg = tempavg + (double)e.nextElement();
 	}
 	tempavg = tempavg/(temptable.size());
+	if(strarray[0].startsWith("bluh")){
+	    sendToAll(";tempup " + strarray[1] + " " + Double.toString(tempavg));
+	}
+	else{
+	    sendToChannel(";tempup " + strarray[1] + " " + Double.toString(tempavg), roomnum, "tempcheck", socket, strarray[0]);
+	}
     }
 
     //Send a message to all clients (the main channel)
@@ -135,7 +153,16 @@ public class Server
 	//Assigns the user the name they chose
 	else if(!users.containsKey(name) && !regnames.containsKey(name)){
 	    users.remove(oldname);
+	    ArrayList<String> hold = userroomlist.get(oldname);
+	    userroomlist.remove(oldname);
+	    userroomlist.put(name, hold);
 	    users.put(name, name);
+	    for(int j = 0; j < hold.size(); j++){
+		int roomnum = roomlist.get(hold.get(j));
+		(rooms.get(roomnum-1)).remove(oldname);
+		(rooms.get(roomnum-1)).put(name, outputStreams.get(socket));
+		sendToChannel(oldname + " has changed their name to " + name, roomnum, name, socket, hold.get(j));
+	    }
 	    sendToAll(oldname + " has changed their name to " + name);
 	    return name;
 	}
@@ -170,7 +197,16 @@ public class Server
 	    //Identifies the user
 	    if(userpassarray[1].compareTo((regnames.get(userpassarray[0])).toString()) == 0){
 		users.remove(oldname);
-		users.put(name, name);
+		ArrayList<String> hold = userroomlist.get(oldname);
+		userroomlist.remove(oldname);
+		userroomlist.put(userpassarray[0], hold);
+		users.put(userpassarray[0], userpassarray[0]);
+		for(int j = 0; j < hold.size(); j++){
+		    int roomnum = roomlist.get(hold.get(j));
+		    (rooms.get(roomnum-1)).remove(oldname);
+		    (rooms.get(roomnum-1)).put(userpassarray[0], outputStreams.get(socket));
+		    sendToChannel(oldname + " has changed their name to " + userpassarray[0], roomnum, userpassarray[0], socket, hold.get(j));
+		}
 		sendToAll(oldname + " has changed their name to " + userpassarray[0]);
 		return userpassarray[0];
 	    }
@@ -213,6 +249,7 @@ public class Server
 	else if(!roomlist.containsKey(room)){
 	    roomlist.put(room, roomlist.size()+1);
 	    rooms.add(new Hashtable());
+	    temptable.add(new ArrayList<Hashtable<String, Double>>());
 	}
     }
 
@@ -240,6 +277,7 @@ public class Server
                     System.out.println(ie);
                 }
 
+		(userroomlist.get(currentname)).add(room);
 		(rooms.get(roomnum-1)).put(currentname, outputStreams.get(socket));
 		sendToChannel(currentname + " has joined the channel " + room + "." , roomnum, currentname, socket, room);
 	    }
@@ -262,6 +300,7 @@ public class Server
 	    //Removes the user from the channel
 	    if((rooms.get(roomnum-1)).containsKey(currentname)){
 		(rooms.get(roomnum-1)).remove(currentname);
+		(userroomlist.get(currentname)).remove((userroomlist.get(currentname)).indexOf(room));
 
 		//Remove room if it is empty
 		if((rooms.get(roomnum-1)).size() == 0){
@@ -311,12 +350,12 @@ public class Server
 
     //Sends a message to the channel
     public void sendToChannel(String message, int roomnumber, String currentname, Socket socket, String roomname){
-	if((rooms.get(roomnumber-1)).containsKey(currentname)){
+	if((rooms.get(roomnumber-1)).containsKey(currentname) || currentname.startsWith("tempcheck")){
 	    synchronized(rooms.get(roomnumber-1)){
 		//Get all streams and write to them
 		for(Enumeration e = getChannelStreams(roomnumber); e.hasMoreElements(); ){
 		    DataOutputStream dout = (DataOutputStream)e.nextElement();
-
+		    
 		    try{
 			dout.writeUTF(roomname + " " + message);
 		    } catch(IOException ie){
@@ -355,6 +394,7 @@ public class Server
     //Removes the name of someone who has left from the userlist
     public void removeUser(String name){
 	users.remove(name);
+	userroomlist.remove(name);
     }
 
     //Checks if the userlist has a particular name in it

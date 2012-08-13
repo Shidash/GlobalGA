@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.lang.*;
 
 public class Client extends Panel implements Runnable
 {
@@ -14,8 +15,6 @@ public class Client extends Panel implements Runnable
     private DataInputStream din;
     private int i = 1;
     private String[] roomlist = new String[99999];
-    int temp;
-    private JSlider tempcheck = new JSlider(JSlider.VERTICAL, 0, 100, temp);
     JTabbedPane channels = new JTabbedPane();
 
     //Arrays for new tabs
@@ -27,7 +26,6 @@ public class Client extends Panel implements Runnable
     private ArrayList<TextField> tfarray = new ArrayList<TextField>();
     private ArrayList<String[]> votelist = new ArrayList<String[]>();
     private ArrayList<JList> listarray = new ArrayList<JList>();
-    private ArrayList<JTextArea> pollsarray = new ArrayList<JTextArea>();
     private ArrayList<JSplitPane> votePanearray = new ArrayList<JSplitPane>();
     private ArrayList<JSplitPane> toparray = new ArrayList <JSplitPane>();
     private ArrayList<JRadioButton> tempbutton = new ArrayList<JRadioButton>();
@@ -36,28 +34,24 @@ public class Client extends Panel implements Runnable
     private ArrayList<JPanel> radiopanel = new ArrayList<JPanel>();
     private ArrayList<JPanel> cards = new ArrayList<JPanel>();
     private ArrayList<Button> back = new ArrayList<Button>();
-    //private ArrayList<CardLayout> cl = new ArrayList<CardLayout>();
+    private ArrayList<Button> submit = new ArrayList<Button>();
+    private ArrayList<TextField> tfcreate = new ArrayList<TextField>();
+    private ArrayList<JPanel> incards = new ArrayList<JPanel>();
+    private ArrayList<ArrayList<JPanel>> pollarray = new ArrayList<ArrayList<JPanel>>();
+    private ArrayList<ArrayList<JLabel>> avgtemp = new ArrayList<ArrayList<JLabel>>();
+    private ArrayList<ArrayList<JLabel>> picture = new ArrayList<ArrayList<JLabel>>();
+    private ArrayList<ArrayList<JSlider>> tempcheck = new ArrayList<ArrayList<JSlider>>();
     CardLayout cl;
+    CardLayout incl;
+    ClassLoader cldr = this.getClass().getClassLoader();
+    java.net.URL happyURL = cldr.getResource("happy.png");
+    ImageIcon happy = new ImageIcon(happyURL);
+    java.net.URL sadURL = cldr.getResource("sad.png");
+    ImageIcon sad = new ImageIcon(sadURL);
+    java.net.URL normalURL = cldr.getResource("normal.png");
+    ImageIcon normal = new ImageIcon(normalURL);
 
     public Client(String host, int port){
-	//Temp check
-	tempcheck.setMajorTickSpacing(10);
-	tempcheck.setPaintTicks(true);
-	Hashtable labelTable = new Hashtable();
-	labelTable.put(0, new JLabel(" Strongly Disagree"));
-	labelTable.put(50, new JLabel(" Neutral") );
-	labelTable.put(100, new JLabel(" Strongly Agree") );
-	tempcheck.setLabelTable( labelTable );
-	tempcheck.setPaintLabels(true);
-	tempcheck.addChangeListener(new ChangeListener() {
-		public void stateChanged(ChangeEvent event){
-		    JSlider tempcheck = (JSlider)event.getSource();
-		    if(!tempcheck.getValueIsAdjusting()){
-			//processMessage("/changetemp " + Integer.toString(tempcheck.getValue()));
-		    }
-		}
-	    });
-
 	//Create main tab	
 	newTab(0, "Main");
 	channels.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -93,23 +87,44 @@ public class Client extends Panel implements Runnable
         (taarray.get(index)).setLineWrap(true);
         (taarray.get(index)).setWrapStyleWord(true);
 
+	pollarray.add(new ArrayList<JPanel>());
+	avgtemp.add(new ArrayList<JLabel>());
+	picture.add(new ArrayList<JLabel>());
+	incards.add(new JPanel(new CardLayout()));
+	tempcheck.add(new ArrayList<JSlider>());
+
 	//Vote list
 	votelist.add(new String[99999]);
 	listarray.add(new JList(votelist.get(index)));
 	(listarray.get(index)).setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	(listarray.get(index)).setSelectedIndex(0);
-	//list.addListSelectionListener(this);
+	incards.add(new JPanel(new CardLayout()));
+	(listarray.get(index)).setFixedCellHeight(20);
+	(listarray.get(index)).addListSelectionListener(new ListSelectionListener() {
+		public void valueChanged(ListSelectionEvent e){
+		    JList theList = (JList)e.getSource();
+		    theList.ensureIndexIsVisible(theList.getSelectedIndex());
+
+		    if (e.getValueIsAdjusting())
+			return;
+		    
+		    if (theList.isSelectionEmpty()) {
+			
+		    } else {
+			int index = theList.getSelectedIndex();
+			incl = (CardLayout)((incards.get(i-1)).getLayout());
+			incl.show(incards.get(i-1), Integer.toString(index));
+		    }
+		}
+	    });
 
 	cards.add(new JPanel(new CardLayout()));
 
-	//Poll object
-	pollsarray.add(new JTextArea());
-
 	//Setup vote pane
-	votePanearray.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listarray.get(index), pollsarray.get(index)));
+	votePanearray.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listarray.get(index), incards.get(index)));
         (votePanearray.get(index)).setDividerLocation(200);
 	(listarray.get(index)).setMinimumSize(new Dimension(100, 50));
-        (pollsarray.get(index)).setMinimumSize(new Dimension(100, 50));
+	(incards.get(index)).setMinimumSize(new Dimension(100, 50));
 
 	//Top object
 	tempbutton.add(new JRadioButton("Temperature Check"));
@@ -123,38 +138,110 @@ public class Client extends Panel implements Runnable
 	buttongroup.add(new ButtonGroup());
 	(buttongroup.get(index)).add(tempbutton.get(index));
 	(buttongroup.get(index)).add(pollbutton.get(index));
+
+	back.add(new Button("Back"));
+	tfcreate.add(new TextField());
+	submit.add(new Button("Submit"));
+
+	(back.get(index)).addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent event){
+		    for(int x = 0; x < back.size(); x++){
+			if(event.getSource() == back.get(x)){
+			    cl.first(cards.get(x));
+			}
+		    }
+		}
+	    });
+	
+	(tfcreate.get(index)).addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent event){
+		    for(int x = 0; x < tfcreate.size(); x++){
+			if(event.getSource() == tfcreate.get(x)){
+			    String text = event.getActionCommand();
+			    if(x == 0){
+				processMessage("/newtempcheck " + "bluh " + text, 0);
+			    }
+			    else{
+				processMessage("/newtempcheck " + roomlist[x-1] + " " + text, x);
+			    }
+			    (tfcreate.get(x)).setText("");
+			    cl.first(cards.get(x));
+			}
+		    };
+		}
+	    });
+
+	(submit.get(index)).addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent event){
+		    for(int x = 0; x < submit.size(); x++){
+			if(event.getSource() == submit.get(x)){
+			    String text = (tfcreate.get(x)).getText();
+			    if(x == 0){
+				processMessage("/newtempcheck " + "bluh " + text, 0);
+			    }
+			    else{
+				processMessage("/newtempcheck " + roomlist[x-1] + " " + text, x);
+			    }
+			    (tfcreate.get(x)).setText("");
+			    cl.first(cards.get(x));
+			}
+		    }
+		}
+	    });
+
 	
 	//Tempcheck creation
 	(tempbutton.get(index)).addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e){
-		    JPanel temppanel = new JPanel();
-		    (cards.get(i-1)).add(temppanel, "Tempcheck");
-		    cl = (CardLayout)((cards.get(i-1)).getLayout());
-		    cl.show(cards.get(i-1), "Tempcheck");
-		    back.add(new Button("Back"));
-		    temppanel.add(back.get(i-1));
-		    (back.get(i-1)).addActionListener(new ActionListener() {
-			    public void actionPerformed(ActionEvent event){
-				cl.first(cards.get(i-1));
-			    }
-		    });
+		    for(int x = 0; x < tempbutton.size(); x++){
+			if(e.getSource() == tempbutton.get(x)){
+			    JPanel temppanel = new JPanel();
+			    (cards.get(x)).add(temppanel, "Tempcheck");
+			    cl = (CardLayout)((cards.get(x)).getLayout());
+			    cl.show(cards.get(x), "Tempcheck");
+			    JPanel backpanel = new JPanel();
+			    (back.get(x)).setPreferredSize(new Dimension(100, 30));
+			    (submit.get(x)).setPreferredSize(new Dimension(100, 30));
+			    (tfcreate.get(x)).setPreferredSize(new Dimension(200, 30));
+			    JPanel sendpanel = new JPanel();
+			    JLabel temptopic = new JLabel("Topic of Temperature Check: ");
+			    JPanel sendbutton = new JPanel();
+			    backpanel.add(back.get(x));
+			    backpanel.add(submit.get(x));
+			    sendpanel.add(temptopic);
+			    sendpanel.add(tfcreate.get(x));
+			    temppanel.setLayout(new BoxLayout(temppanel, BoxLayout.PAGE_AXIS));
+			    temppanel.add(Box.createHorizontalGlue());
+			    temppanel.add(Box.createRigidArea(new Dimension(40, 100)));
+			    temppanel.add(sendpanel);
+			    temppanel.add(backpanel);
+			}
+		    }
 		}
 	    });
 
 	//Poll creation
 	(pollbutton.get(index)).addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e){
-		    JPanel pollpanel = new JPanel();
-		    (cards.get(i-1)).add(pollpanel, "poll");
-		    cl = (CardLayout)((cards.get(i-1)).getLayout());
-		    cl.show(cards.get(i-1), "poll");
-		    back.add(new Button("Back"));
-		    pollpanel.add(back.get(i-1));
-                    (back.get(i-1)).addActionListener(new ActionListener() {
-                            public void actionPerformed(ActionEvent event){
-                                cl.first(cards.get(i-1));
-                            }
-			});
+		    for(int x = 0; x < pollbutton.size(); x++){
+			if(e.getSource() == pollbutton.get(x)){
+			    JPanel pollpanel = new JPanel();
+			    (cards.get(x)).add(pollpanel, "poll");
+			    cl = (CardLayout)((cards.get(x)).getLayout());
+			    cl.show(cards.get(x), "poll");
+			    back.add(new Button("Back"));
+			    pollpanel.add(back.get(x));
+			    (back.get(x)).addActionListener(new ActionListener() {
+				    public void actionPerformed(ActionEvent event){
+					for(int w = 0; w < back.size(); w++){
+					    if(event.getSource() == submit.get(w)){
+						cl.first(cards.get(w));
+					    }
+					}
+				    }
+				});
+			}
+		    }
 		}
 	    });
 
@@ -179,7 +266,6 @@ public class Client extends Panel implements Runnable
         tabbararray.add(new JTabbedPane());
         (tabbararray.get(index)).addTab("Info", new TextArea());
         (tabbararray.get(index)).addTab("Decide", cards.get(index));
-        (tabbararray.get(index)).addTab("Think", null);
 
         //Adds tabbedarea to the layout                                                                                
 	gbc.gridx = 0;
@@ -279,6 +365,56 @@ public class Client extends Panel implements Runnable
             } );
     }
 
+    public JPanel tempObject(ArrayList<JPanel> pollarray, int index, int num, String tempq, ArrayList<JLabel> avgtemp){
+	pollarray.add(new JPanel());
+	int temp = 50;
+	(tempcheck.get(index)).add(new JSlider(JSlider.VERTICAL, 0, 100, temp));
+	((tempcheck.get(index)).get(num)).setMajorTickSpacing(10);
+	((tempcheck.get(index)).get(num)).setPaintTicks(true);
+	((tempcheck.get(index)).get(num)).setPreferredSize(new Dimension(300, 225));
+	Hashtable labelTable = new Hashtable();
+	labelTable.put(1, new JLabel("   Strongly Disagree"));
+	labelTable.put(50, new JLabel("   Neutral") );
+	labelTable.put(99, new JLabel("   Strongly Agree") );
+	((tempcheck.get(index)).get(num)).setLabelTable( labelTable );
+	((tempcheck.get(index)).get(num)).setPaintLabels(true);
+
+	((tempcheck.get(index)).get(num)).addChangeListener(new ChangeListener() {
+		public void stateChanged(ChangeEvent event){
+		    for(int x = 0; x < tempcheck.size(); x++){
+			for(int z = 0; z < (tempcheck.get(x)).size(); z++){
+			    if(event.getSource() == ((tempcheck.get(x)).get(z))){
+				if(x==0){
+				    processMessage("/changetemp " + "bluh " + z + " " + Integer.toString(((tempcheck.get(x)).get(z)).getValue()), x);
+				}
+				else{
+				    processMessage("/changetemp " + roomlist[x] + " " + z + " " + Integer.toString(((tempcheck.get(x)).get(z)).getValue()), i-1);
+				}
+			    }
+			}
+		    }
+		}
+	    });
+
+      	
+	(pollarray.get(num)).setLayout(new BoxLayout((pollarray.get(num)), BoxLayout.PAGE_AXIS));
+	votelist.get(index)[num] = tempq;
+	JPanel tempane = new JPanel();
+	tempane.add((tempcheck.get(index)).get(num));
+	JLabel question = new JLabel(tempq);
+	JPanel qpanel = new JPanel();
+	qpanel.add(question);
+	JPanel avgpane = new JPanel();
+	avgtemp.add(new JLabel("Average Temperature: 50\n"));
+	(picture.get(index)).add(new JLabel(normal));
+	avgpane.add(avgtemp.get(num));
+	avgpane.add((picture.get(index)).get(num));
+	(pollarray.get(num)).add(qpanel);
+	(pollarray.get(num)).add(tempane);
+	(pollarray.get(num)).add(avgpane);
+	return pollarray.get(num);
+    }
+
     //Processes messages
     public void processMessage(String message, int index){
 	try{
@@ -332,13 +468,56 @@ public class Client extends Panel implements Runnable
 			    for(int j = 0; j < i; j++){
 				if(message.startsWith(roomlist[j] + " ")){
 				    messarray = message.split(" ", 2);
-				    (taarray.get(j+1)).append(messarray[1]+"\n");
+				    if(messarray[1].startsWith(";tempup ")){
+					//send update to the right temp in the right room
+					String[] mess2array;
+					mess2array = messarray[1].split(" ", 3);
+					((avgtemp.get(j+1)).get(Integer.parseInt(mess2array[1]))).setText("Average Temperature: " + mess2array[2]);
+					if(Double.parseDouble(mess2array[2]) > 66){
+					    ((picture.get(j+1)).get(Integer.parseInt(mess2array[1]))).setIcon(happy);
+					}
+					else if(Double.parseDouble(mess2array[2]) < 33){
+					    ((picture.get(j+1)).get(Integer.parseInt(mess2array[1]))).setIcon(sad);
+					}
+					else{
+					    ((picture.get(j+1)).get(Integer.parseInt(mess2array[1]))).setIcon(normal);
+					    }
+				    }
+				    else if(messarray[1].startsWith(";newtemp ")){
+					String[] mess2array;
+					mess2array = messarray[1].split(" ", 3);
+					(incards.get(j+11)).add(tempObject(pollarray.get(j+1), j+1, Integer.parseInt(messarray[1]), messarray[2], avgtemp.get(j+1)), messarray[1]);
+				    }
+				    else{
+					(taarray.get(j+1)).append(messarray[1]+"\n");
+				    }
 				    flag = 1;
 				    break;
 				}
 			    }
 			    if(flag == 0){
-				(taarray.get(0)).append(message+"\n");
+				if(message.startsWith(";tempup ")){
+				    //send update to the right temp in the right room
+				    messarray = message.split(" ", 3);
+				    ((avgtemp.get(0)).get(Integer.parseInt(messarray[1]))).setText("Average Temperature: " + messarray[2]);
+				    
+				    if(Double.parseDouble(messarray[2]) > 66){
+					((picture.get(0)).get(Integer.parseInt(messarray[1]))).setIcon(happy);
+				    }
+				    else if(Double.parseDouble(messarray[2]) < 33){
+                                        ((picture.get(0)).get(Integer.parseInt(messarray[1]))).setIcon(sad);
+				    } 
+				    else{
+                                        ((picture.get(0)).get(Integer.parseInt(messarray[1]))).setIcon(normal);
+				    }
+				}
+				else if(message.startsWith(";newtemp ")){
+				    messarray = message.split(" ", 3);
+				    (incards.get(0)).add(tempObject(pollarray.get(0), 0, Integer.parseInt(messarray[1]), messarray[2], avgtemp.get(0)), messarray[1]);                 
+				}
+				else{
+				    (taarray.get(0)).append(message+"\n");
+				}
 			    }
 			}
 		    }

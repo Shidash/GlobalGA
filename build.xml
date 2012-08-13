@@ -3,9 +3,12 @@
   <property name="jar"  location="."/>
   <mkdir dir = "build"/>
   <property name="build" location="build"/>
+  <copy file="normal.png" todir="build"/>
+  <copy file="sad.png" todir="build"/>
+  <copy file="happy.png" todir="build"/>
 
   <target name="compile" description="compile the source " >
-    <javac srcdir="${src}" destdir="${build}">
+    <javac srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source">
     <classpath>
 	<pathelement location = "."/>
     </classpath>
