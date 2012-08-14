@@ -43,6 +43,7 @@ public class Server
 	    userroomlist.put(name, new ArrayList<String>());
 	    numuser++;
 	    new ServerThread(this, socket);
+	    sendListAll();
 	}
     }
 
@@ -91,6 +92,24 @@ public class Server
 	else{
 	    sendToChannel(";tempup " + strarray[1] + " " + Double.toString(tempavg), roomnum, "tempcheck", socket, strarray[0]);
 	}
+    }
+
+    void sendListAll(){
+	String message = ";updatelist";
+	Enumeration userlist = users.keys();
+	while(userlist.hasMoreElements()){
+	    message = message + " " + userlist.nextElement();
+	}
+	sendToAll(message);
+    }
+
+    void sendListChannel(int roomnum, String name, Socket socket, String channame){
+        String message = ";updatelist";
+        Enumeration userlist =  (rooms.get(roomnum-1)).keys();
+	while(userlist.hasMoreElements()){
+            message = message + " " + userlist.nextElement();
+        }
+        sendToChannel(message, roomnum, name, socket, channame);
     }
 
     //Send a message to all clients (the main channel)
@@ -162,8 +181,10 @@ public class Server
 		(rooms.get(roomnum-1)).remove(oldname);
 		(rooms.get(roomnum-1)).put(name, outputStreams.get(socket));
 		sendToChannel(oldname + " has changed their name to " + name, roomnum, name, socket, hold.get(j));
+		sendListChannel(roomnum, name, socket, hold.get(j));
 	    }
 	    sendToAll(oldname + " has changed their name to " + name);
+	    sendListAll();
 	    return name;
 	}
 	return oldname;
@@ -206,8 +227,10 @@ public class Server
 		    (rooms.get(roomnum-1)).remove(oldname);
 		    (rooms.get(roomnum-1)).put(userpassarray[0], outputStreams.get(socket));
 		    sendToChannel(oldname + " has changed their name to " + userpassarray[0], roomnum, userpassarray[0], socket, hold.get(j));
+		    sendListChannel(roomnum, userpassarray[0], socket, hold.get(j));
 		}
 		sendToAll(oldname + " has changed their name to " + userpassarray[0]);
+		sendListAll();
 		return userpassarray[0];
 	    }
 	    //Checks if the password is correct
@@ -280,6 +303,7 @@ public class Server
 		(userroomlist.get(currentname)).add(room);
 		(rooms.get(roomnum-1)).put(currentname, outputStreams.get(socket));
 		sendToChannel(currentname + " has joined the channel " + room + "." , roomnum, currentname, socket, room);
+		sendListChannel(roomnum, currentname, socket, room);
 	    }
 	}
 	//The room does not exist, create it
@@ -306,7 +330,8 @@ public class Server
 		if((rooms.get(roomnum-1)).size() == 0){
 		    rooms.remove(roomnum-1);
 		    roomlist.remove(room);
-		    
+		    temptable.remove(roomnum);
+
 		    //Reindex the rooms
 		    Enumeration keys = roomlist.keys();
 		    while(keys.hasMoreElements()){
@@ -320,6 +345,7 @@ public class Server
 		}
 		else{
 		    sendToChannel("/parted " + currentname + " has parted the channel " + room + "." , roomnum, currentname, socket, room);
+		    sendListChannel(roomnum, "tempcheck", socket, room);
 		}
 	    }
 	    //The user is not in the channel

@@ -37,12 +37,17 @@ public class Client extends Panel implements Runnable
     private ArrayList<Button> submit = new ArrayList<Button>();
     private ArrayList<TextField> tfcreate = new ArrayList<TextField>();
     private ArrayList<JPanel> incards = new ArrayList<JPanel>();
+    private ArrayList<ArrayList<JLabel>> picture = new ArrayList<ArrayList<JLabel>>(); 
     private ArrayList<ArrayList<JPanel>> pollarray = new ArrayList<ArrayList<JPanel>>();
     private ArrayList<ArrayList<JLabel>> avgtemp = new ArrayList<ArrayList<JLabel>>();
-    private ArrayList<ArrayList<JLabel>> picture = new ArrayList<ArrayList<JLabel>>();
     private ArrayList<ArrayList<JSlider>> tempcheck = new ArrayList<ArrayList<JSlider>>();
+    private ArrayList<String[]> users = new ArrayList<String[]>();
+    private ArrayList<JList> userlist = new ArrayList<JList>();
+    private ArrayList<JPanel> infopanel = new ArrayList<JPanel>();
+    private ArrayList<JSplitPane> infopane = new ArrayList<JSplitPane>();
     CardLayout cl;
     CardLayout incl;
+
     ClassLoader cldr = this.getClass().getClassLoader();
     java.net.URL happyURL = cldr.getResource("happy.png");
     ImageIcon happy = new ImageIcon(happyURL);
@@ -102,18 +107,22 @@ public class Client extends Panel implements Runnable
 	(listarray.get(index)).setFixedCellHeight(20);
 	(listarray.get(index)).addListSelectionListener(new ListSelectionListener() {
 		public void valueChanged(ListSelectionEvent e){
-		    JList theList = (JList)e.getSource();
-		    theList.ensureIndexIsVisible(theList.getSelectedIndex());
-
-		    if (e.getValueIsAdjusting())
-			return;
-		    
-		    if (theList.isSelectionEmpty()) {
-			
-		    } else {
-			int index = theList.getSelectedIndex();
-			incl = (CardLayout)((incards.get(i-1)).getLayout());
-			incl.show(incards.get(i-1), Integer.toString(index));
+		    for(int x = 0; x < listarray.size(); x++){
+			JList theList = (JList)e.getSource();
+			if(theList == listarray.get(x)){
+			    theList.ensureIndexIsVisible(theList.getSelectedIndex());
+			    
+			    if (e.getValueIsAdjusting())
+				return;
+			    
+			    if (theList.isSelectionEmpty()) {
+				
+			    } else {
+				int index = theList.getSelectedIndex();
+				incl = (CardLayout)((incards.get(x)).getLayout());
+				incl.show(incards.get(x), Integer.toString(index));
+			    }
+			}
 		    }
 		}
 	    });
@@ -261,10 +270,41 @@ public class Client extends Panel implements Runnable
         (toparray.get(index)).setPreferredSize(new Dimension(500, 400));
 
 	(cards.get(index)).add(toparray.get(index), "Home");
+	
+	//Create infopane
+	users.add(new String[99999]);
+	userlist.add(new JList(users.get(index)));
+	(userlist.get(index)).setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	(userlist.get(index)).setSelectedIndex(0);
+	(userlist.get(index)).setFixedCellHeight(20);
+	(userlist.get(index)).addListSelectionListener(new ListSelectionListener() {
+                public void valueChanged(ListSelectionEvent e){
+                    JList theList = (JList)e.getSource();
+                    theList.ensureIndexIsVisible(theList.getSelectedIndex());
+
+                    if (e.getValueIsAdjusting())
+                        return;
+
+                    if (theList.isSelectionEmpty()) {
+
+                    } else {
+                      
+                    }
+                }
+            });
+	infopanel.add(new JPanel());
+	(infopanel.get(index)).setLayout(new BoxLayout(infopanel.get(index), BoxLayout.LINE_AXIS));
+
+	infopane.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, userlist.get(index), infopanel.get(index)));
+	(infopane.get(index)).setDividerLocation(200);
+        (userlist.get(index)).setMinimumSize(new Dimension(100, 50));
+        (infopanel.get(index)).setMinimumSize(new Dimension(100, 50));
+        (userlist.get(index)).setPreferredSize(new Dimension(100, 50));
+        (infopanel.get(index)).setPreferredSize(new Dimension(100, 50));
 
 	//Setup tabbar                                                                                                 
         tabbararray.add(new JTabbedPane());
-        (tabbararray.get(index)).addTab("Info", new TextArea());
+        (tabbararray.get(index)).addTab("Info", infopane.get(index));
         (tabbararray.get(index)).addTab("Decide", cards.get(index));
 
         //Adds tabbedarea to the layout                                                                                
@@ -419,10 +459,14 @@ public class Client extends Panel implements Runnable
     public void processMessage(String message, int index){
 	try{
 	    if(message.startsWith("/part ")){
+		
+		dout.writeUTF(message);
 		exitRoom(message);
 	    }
-	    dout.writeUTF(message);
-	    (tfarray.get(index)).setText("");
+	    else{
+		dout.writeUTF(message);
+		(tfarray.get(index)).setText("");
+	    }
 	} catch(IOException ie) {
 	    System.out.println(ie);
 	}
@@ -436,9 +480,30 @@ public class Client extends Panel implements Runnable
 		taarray.remove(j+1);
 		tabbararray.remove(j+1);
 		tfarray.remove(j+1);
+		pollarray.remove(j+1);
+		votelist.remove(j+1);
+		listarray.remove(j+1);
+		votePanearray.remove(j+1);
+		toparray.remove(j+1);
+		tempbutton.remove(j+1);
+		pollbutton.remove(j+1);
+		buttongroup.remove(j+1);
+		radiopanel.remove(j+1);
+		picture.remove(j+1);
+		cards.remove(j+1);
+		back.remove(j+1);
+		submit.remove(j+1);
+		tfcreate.remove(j+1);
+		incards.remove(j+1);
+		avgtemp.remove(j+1);
+		tempcheck.remove(j+1);
 		sendarray.remove(j+1);
 		sparray.remove(j+1);
 		panelarray.remove(j+1);
+		users.remove(j+1);
+		userlist.remove(j+1);
+		infopanel.remove(j+1);
+		infopane.remove(j+1);
 		for(int k = j+1; k < roomlist.length; k++){
 		    roomlist[k-1] = roomlist[k];
 		}
@@ -486,7 +551,19 @@ public class Client extends Panel implements Runnable
 				    else if(messarray[1].startsWith(";newtemp ")){
 					String[] mess2array;
 					mess2array = messarray[1].split(" ", 3);
-					(incards.get(j+11)).add(tempObject(pollarray.get(j+1), j+1, Integer.parseInt(messarray[1]), messarray[2], avgtemp.get(j+1)), messarray[1]);
+					(incards.get(j+1)).add(tempObject(pollarray.get(j+1), j+1, Integer.parseInt(messarray[1]), messarray[2], avgtemp.get(j+1)), messarray[1]);
+				    }
+				    else if(messarray[1].startsWith(";updatelist")){
+					String[] mess2array;
+					mess2array = messarray[1].split(" ");
+					for(int p = 1; p < mess2array.length; p++){
+					    (users.get(j+1))[p-1] = mess2array[p];
+					}
+					if((users.get(j+1)).length > (mess2array.length-1)){
+					    for(int b = (mess2array.length-1); b < (users.get(j+1)).length; b++){
+						(users.get(j+1))[b] = null;
+					    }
+					}
 				    }
 				    else{
 					(taarray.get(j+1)).append(messarray[1]+"\n");
@@ -514,6 +591,17 @@ public class Client extends Panel implements Runnable
 				else if(message.startsWith(";newtemp ")){
 				    messarray = message.split(" ", 3);
 				    (incards.get(0)).add(tempObject(pollarray.get(0), 0, Integer.parseInt(messarray[1]), messarray[2], avgtemp.get(0)), messarray[1]);                 
+				}
+				else if(message.startsWith(";updatelist")){
+				    messarray = message.split(" ");
+				    for(int p = 1; p < messarray.length; p++){
+					(users.get(0))[p-1] = messarray[p];
+				    } 
+				    if((users.get(0)).length > (messarray.length-1)){
+					for(int b = (messarray.length-1); b < (users.get(0)).length; b++){
+					    (users.get(0))[b] = null;
+					}
+				    }
 				}
 				else{
 				    (taarray.get(0)).append(message+"\n");
