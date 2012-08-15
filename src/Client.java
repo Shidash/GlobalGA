@@ -45,6 +45,14 @@ public class Client extends Panel implements Runnable
     private ArrayList<JList> userlist = new ArrayList<JList>();
     private ArrayList<JPanel> infopanel = new ArrayList<JPanel>();
     private ArrayList<JSplitPane> infopane = new ArrayList<JSplitPane>();
+    private ArrayList<JButton> registerbutton = new ArrayList<JButton>();
+    private ArrayList<JButton> identifybutton = new ArrayList<JButton>();
+    private ArrayList<JButton> newnickbutton = new ArrayList<JButton>();
+    TextField rpassfield;
+    TextField rname;
+    TextField ipassfield;
+    TextField iname;
+    TextField cname;
     CardLayout cl;
     CardLayout incl;
 
@@ -292,8 +300,104 @@ public class Client extends Panel implements Runnable
                     }
                 }
             });
+
 	infopanel.add(new JPanel());
-	(infopanel.get(index)).setLayout(new BoxLayout(infopanel.get(index), BoxLayout.LINE_AXIS));
+	(infopanel.get(index)).setLayout(new BoxLayout(infopanel.get(index), BoxLayout.PAGE_AXIS));
+	JPanel regpanel = new JPanel();
+	GridLayout reglayout = new GridLayout(4, 2);
+	regpanel.setLayout(reglayout);
+	regpanel.add(new JLabel("Register- "));
+	regpanel.add(new JLabel(""));
+	rname = new TextField();
+	regpanel.add(new JLabel("Nickname: "));
+	regpanel.add(rname);
+	rpassfield = new TextField();
+	regpanel.add(new JLabel("Password: "));
+	regpanel.add(rpassfield);
+	regpanel.add(new JLabel(""));
+	registerbutton.add(new JButton("Submit"));
+	regpanel.add(registerbutton.get(index));
+
+	rname.setMinimumSize(new Dimension(100, 20));
+        rname.setPreferredSize(new Dimension(100, 20));
+	rpassfield.setMinimumSize(new Dimension(100, 20));
+        rpassfield.setPreferredSize(new Dimension(100, 20));
+	(registerbutton.get(index)).setMinimumSize(new Dimension(50, 20));
+        (registerbutton.get(index)).setPreferredSize(new Dimension(50, 20));
+
+	//Listens for the user pressing the button                                                                                       
+        (registerbutton.get(index)).addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+		    String name = rname.getText();
+		    String password = rpassfield.getText();
+		    processMessage("/register " + name + " " + password, 0);
+		    rname.setText("");
+		    rpassfield.setText("");
+                }
+            } );
+	(infopanel.get(index)).add(regpanel);
+
+	JPanel identpanel = new JPanel();
+	identpanel.setLayout(reglayout);
+        identpanel.add(new JLabel("Login- "));
+	identpanel.add(new JLabel(""));
+        iname = new TextField();
+        identpanel.add(new JLabel("Nickname: "));
+        identpanel.add(iname);
+        ipassfield = new TextField();
+        identpanel.add(new JLabel("Password: "));
+        identpanel.add(ipassfield);
+	identpanel.add(new JLabel(""));
+        identifybutton.add(new JButton("Submit"));
+        identpanel.add(identifybutton.get(index));
+
+	iname.setMinimumSize(new Dimension(100, 20));
+        iname.setPreferredSize(new Dimension(100, 20));
+        ipassfield.setMinimumSize(new Dimension(100, 20));
+        ipassfield.setPreferredSize(new Dimension(100, 20));
+        (identifybutton.get(index)).setMinimumSize(new Dimension(50, 20));
+        (identifybutton.get(index)).setPreferredSize(new Dimension(50, 20));
+
+        //Listens for the user pressing the button                                                                                       
+        (identifybutton.get(index)).addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {  
+                    String name = iname.getText();
+                    String password = ipassfield.getText();
+                    processMessage("/identify " + name + " " + password, 0);
+		    iname.setText("");
+		    ipassfield.setText("");                                                                      
+                }
+            } );
+
+	(infopanel.get(index)).add(identpanel);
+
+	JPanel changenick = new JPanel();
+	GridLayout changelayout = new GridLayout(3, 2);
+	changenick.setLayout(changelayout);
+	changenick.add(new JLabel("Change Nick- "));
+	changenick.add(new JLabel(""));
+	cname = new TextField();
+	changenick.add(new JLabel("New Nick: "));
+	changenick.add(cname);
+	changenick.add(new JLabel(""));
+	newnickbutton.add(new JButton("Submit"));
+	changenick.add(newnickbutton.get(index));
+
+	cname.setMinimumSize(new Dimension(100, 20));
+        cname.setPreferredSize(new Dimension(100, 20));
+        (newnickbutton.get(index)).setMinimumSize(new Dimension(50, 20));
+        (newnickbutton.get(index)).setPreferredSize(new Dimension(50, 20));
+
+	//Listens for the user pressing the button                                                                                       
+        (newnickbutton.get(index)).addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {                                                                             
+                    String name = cname.getText();
+                    processMessage("/nick " + name, 0);
+                    cname.setText("");                                                                             
+                }
+            } );
+	 (infopanel.get(index)).add(changenick);
+	
 
 	infopane.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, userlist.get(index), infopanel.get(index)));
 	(infopane.get(index)).setDividerLocation(200);
@@ -378,6 +482,7 @@ public class Client extends Panel implements Runnable
 			    String text = e.getActionCommand();
 			    if(x == 0 || text.startsWith("/")){
 				processMessage(text, 0);
+				(tfarray.get(x)).setText("");
 			    }
 			    else{
 				processMessage("/message " + roomlist[x-1] + " " + text, x);
@@ -395,6 +500,7 @@ public class Client extends Panel implements Runnable
 			    String text = (tfarray.get(x)).getText();
                             if(x == 0 || text.startsWith("/")){
                                 processMessage(text, 0);
+				(tfarray.get(x)).setText("");
                             }
                             else{
                                 processMessage("/message " + roomlist[x-1] + " " + text, x);
@@ -489,6 +595,9 @@ public class Client extends Panel implements Runnable
 		pollbutton.remove(j+1);
 		buttongroup.remove(j+1);
 		radiopanel.remove(j+1);
+		registerbutton.remove(j+1);
+		identifybutton.remove(j+1);
+		newnickbutton.remove(j+1);
 		picture.remove(j+1);
 		cards.remove(j+1);
 		back.remove(j+1);

@@ -12,8 +12,5 @@ Commands:
 '/join channelname' to join a channel
 '/part channelname' to part a channel
 '/create channelname' to create a channel
-'/nick newnick' to change your name
-'/register nick password' to register your name
-'/identify nick passowrd' to identify/sign in
 
 Everything else should be taken care of automatically or be fairly clear on the GUI. Please refer to documentation.pdf for more detailed information.
