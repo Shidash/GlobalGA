@@ -8,7 +8,7 @@
   <copy file="happy.png" todir="build"/>
 
   <target name="compile" description="compile the source " >
-    <javac srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source">
+    <javac target="1.6" includeAntRuntime="false" source="1.6" srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source">
     <classpath>
 	<pathelement location = "."/>
     </classpath>

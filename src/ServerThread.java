@@ -48,6 +48,17 @@ public class ServerThread extends Thread
 			else if(message.startsWith("/part ")){
 			    server.partRoom(message, name, socket);
 			}
+			else if(message.startsWith("/newpoll ")){
+			    String message2 = message;
+			    chaninfo = message2.split(" ", 3);
+			    if(chaninfo[1].startsWith("bluh")){
+                                roomnum = 0;
+                            }
+                            else{
+                                roomnum = Integer.parseInt((server.roomlist.get(chaninfo[1])).toString());
+                            }
+			    server.newpoll(message, name, socket, roomnum);
+			}
 			else if(message.startsWith("/newtempcheck ")){
 			    String message2 = message;
 			    chaninfo=message2.split(" ");

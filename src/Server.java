@@ -10,6 +10,8 @@ public class Server
     private Hashtable users = new Hashtable();
     private Hashtable regnames = new Hashtable();
     private ArrayList<ArrayList<Hashtable<String, Double>>> temptable = new ArrayList<ArrayList<Hashtable<String, Double>>>();
+    private ArrayList<ArrayList<String>> votetable = new ArrayList<ArrayList<String>>();
+    private ArrayList<ArrayList<String>> polltable = new ArrayList<ArrayList<String>>();
     HashMap<String, ArrayList> userroomlist = new HashMap<String, ArrayList>();
     String name;
     int numuser = 0;
@@ -32,6 +34,8 @@ public class Server
 	ss = new ServerSocket(port);
 	System.out.println("Listening on "+ss);
 	temptable.add(new ArrayList<Hashtable<String, Double>>());
+	polltable.add(new ArrayList<String>());
+        votetable.add(new ArrayList<String>());
 
 	while(true){
 	    Socket socket = ss.accept();
@@ -58,11 +62,13 @@ public class Server
 
 	if(roomnum == 0){
 	    (temptable.get(0)).add(new Hashtable());
-	    sendToAll(";newtemp " + Integer.toString((temptable.get(0)).size()-1) + " " + strarray[1]); 
+	    (votetable.get(0)).add("temp");
+	    sendToAll(";newtemp " + Integer.toString((temptable.get(0)).size()-1) + " " + Integer.toString((votetable.get(0)).size()-1) + " " + strarray[1]); 
 	}	 
 	else{
 	    (temptable.get(roomnum)).add(new Hashtable());
-	    sendToChannel(";newtemp " + Integer.toString((temptable.get(roomnum)).size()-1) + " " + strarray[1], roomnum, "tempcheck", socket, strarray[0]);
+	    (votetable.get(roomnum)).add("temp");
+	    sendToChannel(";newtemp " + Integer.toString((temptable.get(roomnum)).size()-1) + " " + Integer.toString((votetable.get(roomnum)).size()-1) + " " + strarray[1], roomnum, "tempcheck", socket, strarray[0]);
 	}
     }
         
@@ -83,7 +89,7 @@ public class Server
 	
 	tempavg = 0;
 	for(Enumeration e = ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).elements(); e.hasMoreElements();){
-	    tempavg = tempavg + (double)e.nextElement();
+	    tempavg = tempavg + (Double)e.nextElement();
 	}
 	tempavg = tempavg/(temptable.size());
 	if(strarray[0].startsWith("bluh")){
@@ -92,6 +98,23 @@ public class Server
 	else{
 	    sendToChannel(";tempup " + strarray[1] + " " + Double.toString(tempavg), roomnum, "tempcheck", socket, strarray[0]);
 	}
+    }
+
+    void newpoll(String message, String name, Socket socket, int roomnum){
+	String tempstring = message.substring(9);
+        String strarray[] = tempstring.split(" ", 2);
+
+	if(roomnum == 0){
+	    (votetable.get(0)).add("poll");
+	    (polltable.get(0)).add("poll");
+            sendToAll(";newpoll " + Integer.toString((polltable.get(0)).size()-1) + " " + Integer.toString((votetable.get(0)).size()-1) + " " + strarray[1]);
+	    System.out.println(";newpoll " + Integer.toString((polltable.get(0)).size()-1) + " " + Integer.toString((votetable.get(0)).size()-1) + " " + strarray[1]);
+        }
+        else{
+	    (votetable.get(roomnum)).add("poll");
+            (polltable.get(roomnum)).add("poll");
+            sendToChannel(";newpoll " + Integer.toString((polltable.get(roomnum)).size()-1) + " " + Integer.toString((votetable.get(roomnum)).size()-1) + " " + strarray[1], roomnum, "tempcheck", socket, strarray[0]);
+        }
     }
 
     void sendListAll(){
@@ -273,6 +296,8 @@ public class Server
 	    roomlist.put(room, roomlist.size()+1);
 	    rooms.add(new Hashtable());
 	    temptable.add(new ArrayList<Hashtable<String, Double>>());
+	    polltable.add(new ArrayList<String>());
+	    votetable.add(new ArrayList<String>());
 	}
     }
 
