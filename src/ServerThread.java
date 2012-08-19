@@ -81,6 +81,17 @@ public class ServerThread extends Thread
 			    }
 			    server.trackTemp(message, name, socket, roomnum);
 			}
+			else if(message.startsWith("/trackresponse ")){
+                            String message2 = message;
+                            chaninfo=message2.split(" ");
+                            if(chaninfo[1].startsWith("bluh")){
+                                roomnum = 0;
+                            }
+                            else{
+                                roomnum = Integer.parseInt((server.roomlist.get(chaninfo[1])).toString());
+                            }
+                            server.trackPoll(message, name, socket, roomnum);
+                        }
 		    //Pre-process a message to a room
 			else if(message.startsWith("/message ")){
 			    message = message.substring(9);

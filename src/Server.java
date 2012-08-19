@@ -10,8 +10,8 @@ public class Server
     private Hashtable users = new Hashtable();
     private Hashtable regnames = new Hashtable();
     private ArrayList<ArrayList<Hashtable<String, Double>>> temptable = new ArrayList<ArrayList<Hashtable<String, Double>>>();
-    private ArrayList<ArrayList<String>> votetable = new ArrayList<ArrayList<String>>();
-    private ArrayList<ArrayList<String>> polltable = new ArrayList<ArrayList<String>>();
+    private ArrayList<Hashtable<String, String>> votetable = new ArrayList<Hashtable<String, String>>();
+    private ArrayList<ArrayList<Hashtable<String, String>>> polltable = new ArrayList<ArrayList<Hashtable<String, String>>>();
     HashMap<String, ArrayList> userroomlist = new HashMap<String, ArrayList>();
     String name;
     int numuser = 0;
@@ -34,8 +34,8 @@ public class Server
 	ss = new ServerSocket(port);
 	System.out.println("Listening on "+ss);
 	temptable.add(new ArrayList<Hashtable<String, Double>>());
-	polltable.add(new ArrayList<String>());
-        votetable.add(new ArrayList<String>());
+	polltable.add(new ArrayList<Hashtable<String, String>>());
+        votetable.add(new Hashtable<String, String>());
 
 	while(true){
 	    Socket socket = ss.accept();
@@ -62,12 +62,12 @@ public class Server
 
 	if(roomnum == 0){
 	    (temptable.get(0)).add(new Hashtable());
-	    (votetable.get(0)).add("temp");
+	    (votetable.get(0)).put("t" + Integer.toString((temptable.get(0)).size()-1), Integer.toString((votetable.get(0)).size()));
 	    sendToAll(";newtemp " + Integer.toString((temptable.get(0)).size()-1) + " " + Integer.toString((votetable.get(0)).size()-1) + " " + strarray[1]); 
 	}	 
 	else{
 	    (temptable.get(roomnum)).add(new Hashtable());
-	    (votetable.get(roomnum)).add("temp");
+	    (votetable.get(roomnum)).put("t" + Integer.toString((temptable.get(roomnum)).size()-1), Integer.toString((votetable.get(roomnum)).size()));
 	    sendToChannel(";newtemp " + Integer.toString((temptable.get(roomnum)).size()-1) + " " + Integer.toString((votetable.get(roomnum)).size()-1) + " " + strarray[1], roomnum, "tempcheck", socket, strarray[0]);
 	}
     }
@@ -105,16 +105,45 @@ public class Server
         String strarray[] = tempstring.split(" ", 2);
 
 	if(roomnum == 0){
-	    (votetable.get(0)).add("poll");
-	    (polltable.get(0)).add("poll");
+	    (polltable.get(0)).add(new Hashtable<String, String>());
+	    (votetable.get(0)).put("p" + Integer.toString((polltable.get(0)).size()-1), Integer.toString((votetable.get(0)).size()));
             sendToAll(";newpoll " + Integer.toString((polltable.get(0)).size()-1) + " " + Integer.toString((votetable.get(0)).size()-1) + " " + strarray[1]);
-	    System.out.println(";newpoll " + Integer.toString((polltable.get(0)).size()-1) + " " + Integer.toString((votetable.get(0)).size()-1) + " " + strarray[1]);
         }
         else{
-	    (votetable.get(roomnum)).add("poll");
-            (polltable.get(roomnum)).add("poll");
+	    (polltable.get(roomnum)).add(new Hashtable<String, String>());
+            (votetable.get(roomnum)).put("p" + Integer.toString((polltable.get(roomnum)).size()-1), Integer.toString((votetable.get(roomnum)).size()));
             sendToChannel(";newpoll " + Integer.toString((polltable.get(roomnum)).size()-1) + " " + Integer.toString((votetable.get(roomnum)).size()-1) + " " + strarray[1], roomnum, "tempcheck", socket, strarray[0]);
         }
+    }
+
+    void trackPoll(String message, String name, Socket socket, int roomnum){
+	String pollstring = message.substring(15);
+	String strarray[] = pollstring.split(" ");
+	int pollnum = Integer.parseInt(strarray[1]);
+
+	for(int l = 2; l < strarray.length; l++){
+	    if(!((polltable.get(roomnum)).get(pollnum)).containsKey(strarray[l])){
+		((polltable.get(roomnum)).get(pollnum)).put(strarray[l], "1");
+	    }
+	    else{
+		String value =((polltable.get(roomnum)).get(pollnum)).get(strarray[l]);
+		String newval = Integer.toString(Integer.parseInt(value) + 1);
+		((polltable.get(roomnum)).get(pollnum)).put(strarray[l], newval);
+	    }
+	}
+    
+	String send = ";pollup " + Integer.toString(pollnum) + " " + Integer.toString(votetable.get(roomnum).size()-1);
+	for(Enumeration e = ((polltable.get(roomnum)).get(pollnum)).keys(); e.hasMoreElements(); ){
+	    String currkey = (String)e.nextElement();
+	    send = send + " " + currkey + " " + ((polltable.get(roomnum)).get(pollnum)).get(currkey);
+	}
+	
+	if(roomnum==0){
+	    sendToAll(send);
+	}
+	else{
+	    sendToChannel(send, roomnum, "tempcheck", socket, strarray[0]);
+	}
     }
 
     void sendListAll(){
@@ -183,10 +212,10 @@ public class Server
 	    return oldname;
 	}
 	//Checks if the user is using an illegal name
-	else if(name.startsWith("nick")){
+	else if(name.startsWith("nick") || name.contains(" ")){
 	    try{
 		DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
-                dout.writeUTF("You cannot use other names starting with nick, please choose another name.");
+                dout.writeUTF("You cannot use other names starting with nick or names with spaces, please choose another name.");
 	    } catch(IOException ie) {
 		System.out.println(ie);
 	    }
@@ -296,8 +325,8 @@ public class Server
 	    roomlist.put(room, roomlist.size()+1);
 	    rooms.add(new Hashtable());
 	    temptable.add(new ArrayList<Hashtable<String, Double>>());
-	    polltable.add(new ArrayList<String>());
-	    votetable.add(new ArrayList<String>());
+	    polltable.add(new ArrayList<Hashtable<String, String>>());
+	    votetable.add(new Hashtable<String, String>());
 	}
     }
 

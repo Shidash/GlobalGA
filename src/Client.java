@@ -43,8 +43,11 @@ public class Client extends Panel implements Runnable
     private ArrayList<ArrayList<JSlider>> tempcheck = new ArrayList<ArrayList<JSlider>>();
     private ArrayList<ArrayList<ArrayList<JRadioButton>>> radiolist = new ArrayList<ArrayList<ArrayList<JRadioButton>>>();
     private ArrayList<ArrayList<ArrayList<JCheckBox>>> checklist = new ArrayList<ArrayList<ArrayList<JCheckBox>>>();
+    private ArrayList<ArrayList<ArrayList<String>>> pollanswers = new ArrayList<ArrayList<ArrayList<String>>>();
+    private ArrayList<ArrayList<ArrayList<JLabel>>> pollresults = new ArrayList<ArrayList<ArrayList<JLabel>>>();
     private ArrayList<ArrayList<ArrayList<String>>> results = new ArrayList<ArrayList<ArrayList<String>>>();
     private ArrayList<ArrayList<JButton>> submitvote = new ArrayList<ArrayList<JButton>>();
+    private ArrayList<ArrayList<JPanel>> pollPanel = new ArrayList<ArrayList<JPanel>>();
     private ArrayList<String[]> users = new ArrayList<String[]>();
     private ArrayList<JList> userlist = new ArrayList<JList>();
     private ArrayList<JPanel> infopanel = new ArrayList<JPanel>();
@@ -115,9 +118,12 @@ public class Client extends Panel implements Runnable
 	picture.add(new ArrayList<JLabel>());
 	incards.add(new JPanel(new CardLayout()));
 	tempcheck.add(new ArrayList<JSlider>());
+	pollPanel.add(new ArrayList<JPanel>());
 
 	radiolist.add(new ArrayList<ArrayList<JRadioButton>>());
 	checklist.add(new ArrayList<ArrayList<JCheckBox>>());
+	pollanswers.add(new ArrayList<ArrayList<String>>());
+	pollresults.add(new ArrayList<ArrayList<JLabel>>());
 	results.add(new ArrayList<ArrayList<String>>());
 	submitvote.add(new ArrayList<JButton>());
 
@@ -151,18 +157,6 @@ public class Client extends Panel implements Runnable
 	    });
 
 	cards.add(new JPanel(new CardLayout()));
-
-	//ArrayList<String> responses = new ArrayList<String>();
-	//responses.add("answer 1");
-	//responses.add("answer 2");
-	//responses.add("answer 3");
-	//(incards.get(index)).add(pollObject(pollarray.get(index), index, 0, 0, "test", responses, 1), "0");
-
-	//ArrayList<String> responses2 = new ArrayList<String>();
-        //responses2.add("answer 1");
-        //responses2.add("answer 2");
-        //responses2.add("answer 3");
-        //(incards.get(index)).add(pollObject(pollarray.get(index), index, 1, 1, "test2", responses2, 2), "1");
 
 	//Setup vote pane
 	votePanearray.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listarray.get(index), incards.get(index)));
@@ -621,18 +615,24 @@ public class Client extends Panel implements Runnable
 	(pollarray.get(num)).setLayout(new BoxLayout((pollarray.get(num)), BoxLayout.PAGE_AXIS));
 	votelist.get(index)[num] = pollq;
 	(pollarray.get(num)).add(new JLabel(pollq));
-	JPanel pollPanel = new JPanel(new GridLayout(0, 1));
+	(pollPanel.get(index)).add(new JPanel(new GridLayout(0, 1)));
 
 	(submitvote.get(index)).add(new JButton("Submit"));
 	(radiolist.get(index)).add(new ArrayList<JRadioButton>());
 	(checklist.get(index)).add(new ArrayList<JCheckBox>());
 	(results.get(index)).add(new ArrayList<String>());
+	(pollanswers.get(index)).add(responses);
+	(pollresults.get(index)).add(new ArrayList<JLabel>());
+	
+	for(int q = 0; q < responses.size(); q++){
+	    ((pollresults.get(index)).get(pollnum)).add(new JLabel(" (0 votes)"));
+	}
 
 	//List radio buttons
 	if(ansnum > 1){
 	    for(int s = 0; s < responses.size(); s++){
                 ((checklist.get(index)).get(pollnum)).add(new JCheckBox(responses.get(s)));
-		pollPanel.add(((checklist.get(index)).get(pollnum)).get(s));
+		((pollPanel.get(index)).get(pollnum)).add(((checklist.get(index)).get(pollnum)).get(s));
 		(((checklist.get(index)).get(pollnum)).get(s)).addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			    for(int x = 0; x < checklist.size(); x++){
@@ -658,47 +658,60 @@ public class Client extends Panel implements Runnable
 	    for(int s = 0; s < responses.size(); s++){
 	       ((radiolist.get(index)).get(pollnum)).add(new JRadioButton(responses.get(s)));
 	       buttongroup.add(((radiolist.get(index)).get(pollnum)).get(s));
-		pollPanel.add(((radiolist.get(index)).get(pollnum)).get(s));
-		(((radiolist.get(index)).get(pollnum)).get(s)).addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            for(int x = 0; x < radiolist.size(); x++){
-                                for(int y = 0; y < (radiolist.get(x)).size(); y++){
-                                    for(int z = 0; z < ((radiolist.get(x)).get(y)).size(); z++){
-                                        if(e.getSource() == ((radiolist.get(x)).get(y)).get(z)){
-                                            if((((radiolist.get(x)).get(y)).get(z)).isSelected()){
-						((results.get(x)).get(y)).clear();
-						((results.get(x)).get(y)).add(Integer.toString(z));
-					    }
-					}
-				    }
-				}
-			    }
-			}
-		    });
+	       ((pollPanel.get(index)).get(pollnum)).add(((radiolist.get(index)).get(pollnum)).get(s));
+	       (((radiolist.get(index)).get(pollnum)).get(s)).addActionListener(new ActionListener() {
+		       public void actionPerformed(ActionEvent e) {
+			   for(int x = 0; x < radiolist.size(); x++){
+			       for(int y = 0; y < (radiolist.get(x)).size(); y++){
+				   for(int z = 0; z < ((radiolist.get(x)).get(y)).size(); z++){
+				       if(e.getSource() == ((radiolist.get(x)).get(y)).get(z)){
+					   if((((radiolist.get(x)).get(y)).get(z)).isSelected()){
+					       ((results.get(x)).get(y)).clear();
+					       ((results.get(x)).get(y)).add(Integer.toString(z));
+					   }
+				       }
+				   }
+			       }
+			   }
+		       }
+		   });
 	    }
 	}
-
-	    ((submitvote.get(index)).get(pollnum)).addActionListener(new ActionListener() {
+	
+	((submitvote.get(index)).get(pollnum)).addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			for(int x = 0; x < submitvote.size(); x++){
 			    for(int z = 0; z < (submitvote.get(x)).size(); z++){
 				if(e.getSource() == ((submitvote.get(x)).get(z))){
 				    String send;
-				    send = "/trackresponse " + x + " " + z + " ";
+				    if(x == 0){
+					send = "/trackresponse " + "bluh " + z + " ";
+				    }
+				    else{
+					send = "/trackresponse " + roomlist[x-1] + " " + z + " ";
+				    }
+
 				    for(int k = 0; k < ((results.get(x)).get(z)).size(); k++){
 					send = send + ((results.get(x)).get(z)).get(k) + " ";
 				    }
 				    processMessage(send, x);
+				    ((pollPanel.get(x)).get(z)).removeAll();
+				    ((pollPanel.get(x)).get(z)).setLayout(new GridLayout(0, 1));
+				    for(int w = 0; w < ((pollanswers.get(x)).get(z)).size(); w++){
+					JPanel respage = new JPanel();
+					respage.add(new JLabel(((pollanswers.get(x)).get(z)).get(w)));
+					respage.add(((pollresults.get(x)).get(z)).get(w));
+					((pollPanel.get(x)).get(z)).add(respage);
+				    }
+				    ((pollPanel.get(x)).get(z)).updateUI();
 				}
 			    }
 			}
 		    }
 		});
 
-	pollPanel.add((submitvote.get(index)).get(pollnum));
-	(pollarray.get(num)).add(pollPanel);
-
-	//Add temp num and poll num
+	((pollPanel.get(index)).get(pollnum)).add((submitvote.get(index)).get(pollnum));
+	(pollarray.get(num)).add((pollPanel.get(index)).get(pollnum));
 	return pollarray.get(num);
     }
 
@@ -725,7 +738,7 @@ public class Client extends Panel implements Runnable
 				    processMessage("/changetemp " + "bluh " + z + " " + Integer.toString(((tempcheck.get(x)).get(z)).getValue()), x);
 				}
 				else{
-				    processMessage("/changetemp " + roomlist[x] + " " + z + " " + Integer.toString(((tempcheck.get(x)).get(z)).getValue()), i-1);
+				    processMessage("/changetemp " + roomlist[x-1] + " " + z + " " + Integer.toString(((tempcheck.get(x)).get(z)).getValue()), i-1);
 				}
 			    }
 			}
@@ -755,7 +768,9 @@ public class Client extends Panel implements Runnable
     //Processes messages
     public void processMessage(String message, int index){
 	try{
-	    if(message.startsWith("/part ")){
+	    if(message.equalsIgnoreCase("")){
+	    }
+	    else if(message.startsWith("/part ")){
 		
 		dout.writeUTF(message);
 		exitRoom(message);
@@ -814,6 +829,9 @@ public class Client extends Panel implements Runnable
 		addresponse.remove(j+1);
 		submitpoll.remove(j+1);
 		pollquestion.remove(j+1);
+		pollanswers.remove(j+1);
+		pollresults.remove(j+1);
+		pollPanel.remove(j+1);
 		for(int k = j+1; k < roomlist.length; k++){
 		    roomlist[k-1] = roomlist[k];
 		}
@@ -857,6 +875,15 @@ public class Client extends Panel implements Runnable
 					else{
 					    ((picture.get(j+1)).get(Integer.parseInt(mess2array[1]))).setIcon(normal);
 					    }
+				    }
+				    else if(messarray[1].startsWith(";pollup ")){
+					String[] mess2array;
+					mess2array = messarray[1].split(" ");
+
+					for(int jk = 3; jk < mess2array.length; jk++){
+					    (((pollresults.get(j+1)).get(Integer.parseInt(mess2array[1]))).get(Integer.parseInt(mess2array[jk]))).setText(" (" + mess2array[jk+1] + " votes)");
+					    jk = jk+1;
+					}
 				    }
 				    else if(messarray[1].startsWith(";newpoll ")){
 					String[] mess2array;
@@ -907,6 +934,14 @@ public class Client extends Panel implements Runnable
 				    } 
 				    else{
                                         ((picture.get(0)).get(Integer.parseInt(messarray[1]))).setIcon(normal);
+				    }
+				}
+				else if(message.startsWith(";pollup ")){
+				    messarray = message.split(" ");
+				    
+				    for(int jk = 3; jk < messarray.length; jk++){
+					(((pollresults.get(0)).get(Integer.parseInt(messarray[1]))).get(Integer.parseInt(messarray[jk]))).setText(" (" + messarray[jk+1] + " votes)");
+					jk = jk+1;
 				    }
 				}
 				else if(message.startsWith(";newtemp ")){
