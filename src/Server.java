@@ -33,6 +33,8 @@ public class Server
     private void listen(int port) throws IOException{
 	ss = new ServerSocket(port);
 	System.out.println("Listening on "+ss);
+
+	//Initiate objects for votes
 	temptable.add(new ArrayList<Hashtable<String, Double>>());
 	polltable.add(new ArrayList<Hashtable<String, String>>());
         votetable.add(new Hashtable<String, String>());
@@ -43,9 +45,13 @@ public class Server
 	    DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
 	    outputStreams.put(socket, dout);
 	    name = "nick" + numuser;
+
+	    //Track users
 	    users.put(name, name);
 	    userroomlist.put(name, new ArrayList<String>());
 	    numuser++;
+
+	    //Start new server thread
 	    new ServerThread(this, socket);
 	    sendListAll();
 	}
@@ -56,10 +62,12 @@ public class Server
 	return outputStreams.elements();
     }
 
+    //Create a new temp check
     void newtempcheck(String message, String name, Socket socket, int roomnum){
 	String tempstring = message.substring(14);
 	String strarray[] = tempstring.split(" ", 2);
 
+	//Add and send info to channels
 	if(roomnum == 0){
 	    (temptable.get(0)).add(new Hashtable());
 	    (votetable.get(0)).put("t" + Integer.toString((temptable.get(0)).size()-1), Integer.toString((votetable.get(0)).size()));
@@ -79,19 +87,25 @@ public class Server
 	double temp = Double.parseDouble(strarray[2]);
 	double numtemp;
 	
+	//Check if the person is already in the table
 	if(!((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).containsKey(name)){
+	    //Add user if this is their first time voting
 	    ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).put(name, temp);
 	}
 	else{
+	    //Update a user's vote
 	    ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).remove(name);
 	    ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).put(name, temp);
 	}
 	
+	//Calcuate the average temperature
 	tempavg = 0;
 	for(Enumeration e = ((temptable.get(roomnum)).get(Integer.parseInt(strarray[1]))).elements(); e.hasMoreElements();){
 	    tempavg = tempavg + (Double)e.nextElement();
 	}
 	tempavg = tempavg/(temptable.size());
+
+	//Send results to users
 	if(strarray[0].startsWith("bluh")){
 	    sendToAll(";tempup " + strarray[1] + " " + Double.toString(tempavg));
 	}
@@ -100,10 +114,12 @@ public class Server
 	}
     }
 
+    //Create a new poll
     void newpoll(String message, String name, Socket socket, int roomnum){
 	String tempstring = message.substring(9);
         String strarray[] = tempstring.split(" ", 2);
 
+	//Initiate and send info to the client
 	if(roomnum == 0){
 	    (polltable.get(0)).add(new Hashtable<String, String>());
 	    (votetable.get(0)).put("p" + Integer.toString((polltable.get(0)).size()-1), Integer.toString((votetable.get(0)).size()));
@@ -116,28 +132,34 @@ public class Server
         }
     }
 
+    //Track the results of votes
     void trackPoll(String message, String name, Socket socket, int roomnum){
 	String pollstring = message.substring(15);
 	String strarray[] = pollstring.split(" ");
 	int pollnum = Integer.parseInt(strarray[1]);
 
+	//Go through the string and increment votes
 	for(int l = 2; l < strarray.length; l++){
+	    //Add a new result
 	    if(!((polltable.get(roomnum)).get(pollnum)).containsKey(strarray[l])){
 		((polltable.get(roomnum)).get(pollnum)).put(strarray[l], "1");
 	    }
 	    else{
+		//Update a known result
 		String value =((polltable.get(roomnum)).get(pollnum)).get(strarray[l]);
 		String newval = Integer.toString(Integer.parseInt(value) + 1);
 		((polltable.get(roomnum)).get(pollnum)).put(strarray[l], newval);
 	    }
 	}
     
+	//Create string to send to server
 	String send = ";pollup " + Integer.toString(pollnum) + " " + Integer.toString(votetable.get(roomnum).size()-1);
 	for(Enumeration e = ((polltable.get(roomnum)).get(pollnum)).keys(); e.hasMoreElements(); ){
 	    String currkey = (String)e.nextElement();
 	    send = send + " " + currkey + " " + ((polltable.get(roomnum)).get(pollnum)).get(currkey);
 	}
 	
+	//Send updated count to server
 	if(roomnum==0){
 	    sendToAll(send);
 	}
@@ -146,18 +168,24 @@ public class Server
 	}
     }
 
+    //Send an updated user list to the main channel
     void sendListAll(){
 	String message = ";updatelist";
 	Enumeration userlist = users.keys();
+
+	//Go through the list and form a message
 	while(userlist.hasMoreElements()){
 	    message = message + " " + userlist.nextElement();
 	}
 	sendToAll(message);
     }
 
+    //Send and update user list to a specific channel
     void sendListChannel(int roomnum, String name, Socket socket, String channame){
         String message = ";updatelist";
         Enumeration userlist =  (rooms.get(roomnum-1)).keys();
+
+	//Form and send a message
 	while(userlist.hasMoreElements()){
             message = message + " " + userlist.nextElement();
         }
@@ -167,7 +195,7 @@ public class Server
     //Send a message to all clients (the main channel)
     void sendToAll(String message){
 	synchronized(outputStreams){
-	    //For each client
+	    //For each client. go through and send
 	    Enumeration keys = outputStreams.keys();
 	    for(Enumeration e = getOutputStreams(); e.hasMoreElements(); ){
 		DataOutputStream dout = (DataOutputStream)e.nextElement();
@@ -204,6 +232,7 @@ public class Server
 	//Checks if the name is already in use
 	if(users.containsKey(name) || regnames.containsKey(name)){
 	    try{
+		//Notify the user that name is in use
 		DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
 		dout.writeUTF("The name " + name + " is already in use or registered. Please choose a different name.");
 	    } catch(IOException ie) {
@@ -214,6 +243,7 @@ public class Server
 	//Checks if the user is using an illegal name
 	else if(name.startsWith("nick") || name.contains(" ")){
 	    try{
+		//Notify user of banned names
 		DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
                 dout.writeUTF("You cannot use other names starting with nick or names with spaces, please choose another name.");
 	    } catch(IOException ie) {
@@ -225,9 +255,13 @@ public class Server
 	else if(!users.containsKey(name) && !regnames.containsKey(name)){
 	    users.remove(oldname);
 	    ArrayList<String> hold = userroomlist.get(oldname);
+
+	    //Updates the name in lists
 	    userroomlist.remove(oldname);
 	    userroomlist.put(name, hold);
 	    users.put(name, name);
+
+	    //Notifies all rooms the user is in that their name has changed
 	    for(int j = 0; j < hold.size(); j++){
 		int roomnum = roomlist.get(hold.get(j));
 		(rooms.get(roomnum-1)).remove(oldname);
@@ -274,6 +308,8 @@ public class Server
 		userroomlist.remove(oldname);
 		userroomlist.put(userpassarray[0], hold);
 		users.put(userpassarray[0], userpassarray[0]);
+
+		//Notifies all rooms the user is in that they have changed their name
 		for(int j = 0; j < hold.size(); j++){
 		    int roomnum = roomlist.get(hold.get(j));
 		    (rooms.get(roomnum-1)).remove(oldname);
@@ -288,6 +324,7 @@ public class Server
 	    //Checks if the password is correct
 	    else{
 		try{
+		    //Tells the user they entered the wrong password
 		    DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
 		    dout.writeUTF("The password you entered was incorrect.");
 		} catch(IOException ie) {
@@ -315,6 +352,7 @@ public class Server
 	//Checks if the room exists
 	if(roomlist.containsKey(room)){
 	    try{
+		//Tells the user the room already exists
              DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
                 dout.writeUTF("The room " + room + " has already been created. Please join this room or choose a different name for the room you are creating.");
             } catch(IOException ie) {
@@ -322,6 +360,7 @@ public class Server
             }
 	}
 	else if(!roomlist.containsKey(room)){
+	    //Adds a new room
 	    roomlist.put(room, roomlist.size()+1);
 	    rooms.add(new Hashtable());
 	    temptable.add(new ArrayList<Hashtable<String, Double>>());
@@ -354,8 +393,11 @@ public class Server
                     System.out.println(ie);
                 }
 
+		//Adds the user to lists in the room
 		(userroomlist.get(currentname)).add(room);
 		(rooms.get(roomnum-1)).put(currentname, outputStreams.get(socket));
+
+		//Notifies others that the user has joined
 		sendToChannel(currentname + " has joined the channel " + room + "." , roomnum, currentname, socket, room);
 		sendListChannel(roomnum, currentname, socket, room);
 	    }
@@ -398,6 +440,7 @@ public class Server
 		    }
 		}
 		else{
+		    //Notifies others the user has left
 		    sendToChannel("/parted " + currentname + " has parted the channel " + room + "." , roomnum, currentname, socket, room);
 		    sendListChannel(roomnum, "tempcheck", socket, room);
 		}

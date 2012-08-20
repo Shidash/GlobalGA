@@ -7,10 +7,13 @@ If you run into trouble, be sure you have the Java Swing library.
 
 3. Once it is running, go to the included html file in a browser. It should connect to the server automatically.
 
+Everything should be taken care of automatically or be fairly clear on the GUI. Please refer to documentation.pdf for more detailed information.
 
-Commands:
+If you have an issues with the GUI, you can use the following commands for basic chat.
+
 '/join channelname' to join a channel
 '/part channelname' to part a channel
 '/create channelname' to create a channel
-
-Everything else should be taken care of automatically or be fairly clear on the GUI. Please refer to documentation.pdf for more detailed information.
+'/nick newnick' to change your name
+'/register nickname password' to register your name
+'/identify nickname password' to login to a registered name

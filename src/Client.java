@@ -55,6 +55,10 @@ public class Client extends Panel implements Runnable
     private ArrayList<JButton> registerbutton = new ArrayList<JButton>();
     private ArrayList<JButton> identifybutton = new ArrayList<JButton>();
     private ArrayList<JButton> newnickbutton = new ArrayList<JButton>();
+    private ArrayList<JButton> joinbutton = new ArrayList<JButton>();
+    private ArrayList<JButton> createbutton = new ArrayList<JButton>();
+    private ArrayList<JButton> partbutton = new ArrayList<JButton>();
+    private ArrayList<JPanel> chanpanel = new ArrayList<JPanel>();
     private ArrayList<TextField> pollquestion = new ArrayList<TextField>();
     private ArrayList<ArrayList<TextField>> pollresponse = new ArrayList<ArrayList<TextField>>();
     private ArrayList<Button> submitpoll = new ArrayList<Button>();
@@ -66,6 +70,9 @@ public class Client extends Panel implements Runnable
     TextField ipassfield;
     TextField iname;
     TextField cname;
+    JTextField joinname;
+    JTextField createname;
+    JTextField partname;
     CardLayout cl;
     CardLayout incl;
 
@@ -113,6 +120,7 @@ public class Client extends Panel implements Runnable
         (taarray.get(index)).setLineWrap(true);
         (taarray.get(index)).setWrapStyleWord(true);
 
+	//Initialize temperature check objects
 	pollarray.add(new ArrayList<JPanel>());
 	avgtemp.add(new ArrayList<JLabel>());
 	picture.add(new ArrayList<JLabel>());
@@ -120,6 +128,7 @@ public class Client extends Panel implements Runnable
 	tempcheck.add(new ArrayList<JSlider>());
 	pollPanel.add(new ArrayList<JPanel>());
 
+	//Initialize poll objects
 	radiolist.add(new ArrayList<ArrayList<JRadioButton>>());
 	checklist.add(new ArrayList<ArrayList<JCheckBox>>());
 	pollanswers.add(new ArrayList<ArrayList<String>>());
@@ -134,6 +143,8 @@ public class Client extends Panel implements Runnable
 	(listarray.get(index)).setSelectedIndex(0);
 	incards.add(new JPanel(new CardLayout()));
 	(listarray.get(index)).setFixedCellHeight(20);
+
+	//Vote list listener to control card layout
 	(listarray.get(index)).addListSelectionListener(new ListSelectionListener() {
 		public void valueChanged(ListSelectionEvent e){
 		    for(int x = 0; x < listarray.size(); x++){
@@ -164,7 +175,7 @@ public class Client extends Panel implements Runnable
 	(listarray.get(index)).setMinimumSize(new Dimension(100, 50));
 	(incards.get(index)).setMinimumSize(new Dimension(100, 50));
 
-	//Top object
+	//Top object of JSlider for vote selection creation
 	tempbutton.add(new JRadioButton("Temperature Check"));
         (tempbutton.get(index)).setMnemonic(KeyEvent.VK_B);
         (tempbutton.get(index)).setActionCommand("Temperature Check");
@@ -177,6 +188,7 @@ public class Client extends Panel implements Runnable
 	(buttongroup.get(index)).add(tempbutton.get(index));
 	(buttongroup.get(index)).add(pollbutton.get(index));
 
+	//Make objects for vote creation GUI
 	back.add(new Button("Back"));
 	tfcreate.add(new TextField());
 	submit.add(new Button("Submit"));
@@ -189,6 +201,7 @@ public class Client extends Panel implements Runnable
 	(pollresponse.get(index)).add(new TextField());
 	(pollresponse.get(index)).add(new TextField());
 
+	//Listener for back button that goes back to first page of cardlayout
 	(back.get(index)).addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event){
 		    for(int x = 0; x < back.size(); x++){
@@ -199,6 +212,7 @@ public class Client extends Panel implements Runnable
 		}
 	    });
 	
+	//Text field for creating temp check and function to send info to server
 	(tfcreate.get(index)).addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event){
 		    for(int x = 0; x < tfcreate.size(); x++){
@@ -217,6 +231,7 @@ public class Client extends Panel implements Runnable
 		}
 	    });
 
+	//Submit button for creating new temp check and function to send info to server
 	(submit.get(index)).addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event){
 		    for(int x = 0; x < submit.size(); x++){
@@ -235,7 +250,7 @@ public class Client extends Panel implements Runnable
 		}
 	    });
 
-	//Submit poll
+	//Submit button for poll creation and info to send to server
         (submitpoll.get(index)).addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent event){
                     for(int x = 0; x < submitpoll.size(); x++){
@@ -243,22 +258,30 @@ public class Client extends Panel implements Runnable
 			    String question = (pollquestion.get(x)).getText();
 			    String responses = "";
 			    String numrep;
+			    
+			    //Check if the poll is single or multi-response
 			    if((pollcheck.get(x)).isSelected()){
 				numrep = "2";
 			    }
 			    else{
 				numrep = "1";
 			    }
+
+			    //Add all responses to message
 			    for(int p = 0; p < (pollresponse.get(x)).size(); p++){
 				responses = responses + "," + ((pollresponse.get(x)).get(p)).getText();
 				((pollresponse.get(x)).get(p)).setText("");
 			    }	    
+
+			    //Send info to server
                             if(x == 0){
                                 processMessage("/newpoll " + "bluh " + numrep + " " + question + responses, 0);
                             }
                             else{
                                 processMessage("/newpoll " + roomlist[x-1] + " " + numrep + " " + question + responses, x);
                             }
+
+			    //Clearnup and remove responses from panel, uncheck box
 			    for(int q = 0; q < (pollresponse.get(x)).size(); q++){
 				(responsepanel.get(x)).remove((pollresponse.get(x)).get(q));
 				if(q > 1){
@@ -277,6 +300,7 @@ public class Client extends Panel implements Runnable
             });
 
 	
+	//Listener to add responses to a poll
         (addresponse.get(index)).addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent event){
                     for(int x = 0; x < addresponse.size(); x++){
@@ -290,11 +314,12 @@ public class Client extends Panel implements Runnable
             });
 
 	
-	//Tempcheck creation
+	//Tempcheck creation GUI layout
 	(tempbutton.get(index)).addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e){
 		    for(int x = 0; x < tempbutton.size(); x++){
 			if(e.getSource() == tempbutton.get(x)){
+			    //Create GUI items and setup card layout
 			    JPanel temppanel = new JPanel();
 			    (cards.get(x)).add(temppanel, "Tempcheck");
 			    cl = (CardLayout)((cards.get(x)).getLayout());
@@ -306,6 +331,8 @@ public class Client extends Panel implements Runnable
 			    JPanel sendpanel = new JPanel();
 			    JLabel temptopic = new JLabel("Topic of Temperature Check: ");
 			    JPanel sendbutton = new JPanel();
+			    
+			    //Add items to layout
 			    backpanel.add(back.get(x));
 			    backpanel.add(submit.get(x));
 			    sendpanel.add(temptopic);
@@ -320,11 +347,12 @@ public class Client extends Panel implements Runnable
 		}
 	    });
 
-	//Poll creation
+	//Poll creation GUI layout
 	(pollbutton.get(index)).addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e){
 		    for(int x = 0; x < pollbutton.size(); x++){
 			if(e.getSource() == pollbutton.get(x)){
+			    //Create GUI items and setup cardlayout
 			    JPanel pollpanel = new JPanel();
 			    (cards.get(x)).add(pollpanel, "poll");
 			    cl = (CardLayout)((cards.get(x)).getLayout());
@@ -335,6 +363,8 @@ public class Client extends Panel implements Runnable
 			    (pollquestion.get(x)).setPreferredSize(new Dimension(200, 30));
 			    (addresponse.get(x)).setPreferredSize(new Dimension(100, 30));
 			    JPanel question =new JPanel();
+
+			    //Add items to layout
 			    question.add(new JLabel("Poll Question: "));
 			    question.add(pollquestion.get(x));
 			    (responsepanel.get(x)).setLayout(new BoxLayout((responsepanel.get(x)), BoxLayout.PAGE_AXIS));
@@ -378,7 +408,8 @@ public class Client extends Panel implements Runnable
 
 	(cards.get(index)).add(toparray.get(index), "Home");
 	
-	//Create infopane
+	//Create user tab
+	//User list bar
 	users.add(new String[99999]);
 	userlist.add(new JList(users.get(index)));
 	(userlist.get(index)).setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -400,6 +431,7 @@ public class Client extends Panel implements Runnable
                 }
             });
 
+	//Registration interface on users tab
 	infopanel.add(new JPanel());
 	(infopanel.get(index)).setLayout(new BoxLayout(infopanel.get(index), BoxLayout.PAGE_AXIS));
 	JPanel regpanel = new JPanel();
@@ -436,6 +468,8 @@ public class Client extends Panel implements Runnable
             } );
 	(infopanel.get(index)).add(regpanel);
 
+
+	//Identification page on users panel
 	JPanel identpanel = new JPanel();
 	identpanel.setLayout(reglayout);
         identpanel.add(new JLabel("Login- "));
@@ -470,6 +504,7 @@ public class Client extends Panel implements Runnable
 
 	(infopanel.get(index)).add(identpanel);
 
+	//Name change interface on users panel
 	JPanel changenick = new JPanel();
 	GridLayout changelayout = new GridLayout(3, 2);
 	changenick.setLayout(changelayout);
@@ -497,17 +532,116 @@ public class Client extends Panel implements Runnable
             } );
 	 (infopanel.get(index)).add(changenick);
 	
-
-	infopane.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, userlist.get(index), infopanel.get(index)));
+	 //Layout users tab
+	 infopane.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, userlist.get(index), infopanel.get(index)));
 	(infopane.get(index)).setDividerLocation(200);
         (userlist.get(index)).setMinimumSize(new Dimension(100, 50));
         (infopanel.get(index)).setMinimumSize(new Dimension(100, 50));
         (userlist.get(index)).setPreferredSize(new Dimension(100, 50));
         (infopanel.get(index)).setPreferredSize(new Dimension(100, 50));
 
-	//Setup tabbar                                                                                                 
+	//Channel tab creation
+	//Create channels interface
+	chanpanel.add(new JPanel());
+        (chanpanel.get(index)).setLayout(new BoxLayout(chanpanel.get(index), BoxLayout.PAGE_AXIS));
+        JPanel createpanel = new JPanel();
+        GridLayout createlayout = new GridLayout(3, 2);
+        createpanel.setLayout(createlayout);
+        createpanel.add(new JLabel("Create Channel- "));
+        createpanel.add(new JLabel(""));
+        createname = new JTextField();
+        createpanel.add(new JLabel("Channel Name: "));
+        createpanel.add(createname);
+        createpanel.add(new JLabel(""));
+        createbutton.add(new JButton("Submit"));
+        createpanel.add(createbutton.get(index));
+
+        createname.setMinimumSize(new Dimension(100, 20));
+        createname.setPreferredSize(new Dimension(100, 20));;
+        (createbutton.get(index)).setMinimumSize(new Dimension(50, 20));
+        (createbutton.get(index)).setPreferredSize(new Dimension(50, 20));
+
+        //Listens for the user pressing the button                                                                                             
+        (createbutton.get(index)).addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent e) {
+		  for(int x = 0; x < createbutton.size(); x++){
+		      if(e.getSource() == createbutton.get(x)){
+			  String name = createname.getText();
+			  processMessage("/create " + name, x);
+			  createname.setText("");
+		      }
+		  }
+	      }
+	    } );
+        (chanpanel.get(index)).add(createpanel);
+
+
+	//Join channels interface
+	JPanel joinpanel = new JPanel();
+        joinpanel.setLayout(createlayout);
+        joinpanel.add(new JLabel("Join Channel- "));
+        joinpanel.add(new JLabel(""));
+        joinname = new JTextField();
+        joinpanel.add(new JLabel("Channel Name: "));
+        joinpanel.add(joinname);
+        joinpanel.add(new JLabel(""));
+        joinbutton.add(new JButton("Submit"));
+        joinpanel.add(joinbutton.get(index));
+
+        joinname.setMinimumSize(new Dimension(100, 20));
+        joinname.setPreferredSize(new Dimension(100, 20));;
+        (joinbutton.get(index)).setMinimumSize(new Dimension(50, 20));
+        (joinbutton.get(index)).setPreferredSize(new Dimension(50, 20));
+
+        //Listens for the user pressing the button                                                                                                         
+        (joinbutton.get(index)).addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    for(int x = 0; x < joinbutton.size(); x++){
+			if(e.getSource() == joinbutton.get(x)){
+			    String name = joinname.getText();
+			    processMessage("/join " + name, x);
+			    joinname.setText("");
+			}
+                    }
+                }
+            } );
+        (chanpanel.get(index)).add(joinpanel);
+	
+	//Part channels interface                                                                                                         
+        JPanel partpanel = new JPanel();
+        partpanel.setLayout(createlayout);
+        partpanel.add(new JLabel("Part Channel- "));
+        partpanel.add(new JLabel(""));
+        partname = new JTextField();
+        partpanel.add(new JLabel("Channel Name: "));
+        partpanel.add(partname);
+        partpanel.add(new JLabel(""));
+        partbutton.add(new JButton("Submit"));
+        partpanel.add(partbutton.get(index));
+
+        partname.setMinimumSize(new Dimension(100, 20));
+        partname.setPreferredSize(new Dimension(100, 20));;
+        (partbutton.get(index)).setMinimumSize(new Dimension(50, 20));
+        (partbutton.get(index)).setPreferredSize(new Dimension(50, 20));
+
+        //Listens for the user pressing the button                                                                                                                                           
+        (partbutton.get(index)).addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    for(int x = 0; x < partbutton.size(); x++){
+                        if(e.getSource() == partbutton.get(x)){
+                            String name = partname.getText();
+                            processMessage("/part " + name, x);
+                            partname.setText("");
+                        }
+                    }
+                }
+            } );
+        (chanpanel.get(index)).add(partpanel);
+	
+	//Setup sidebar                                                                                      
         tabbararray.add(new JTabbedPane());
-        (tabbararray.get(index)).addTab("Info", infopane.get(index));
+        (tabbararray.get(index)).addTab("Users", infopane.get(index));
+	(tabbararray.get(index)).addTab("Channels", chanpanel.get(index));
         (tabbararray.get(index)).addTab("Decide", cards.get(index));
 
         //Adds tabbedarea to the layout                                                                                
@@ -611,6 +745,7 @@ public class Client extends Panel implements Runnable
     }
 
     public JPanel pollObject(ArrayList<JPanel> pollarray, int index, int pollnum, int num, String pollq, ArrayList<String> responses, int ansnum){
+	//Add and initialize elements
 	pollarray.add(new JPanel());
 	(pollarray.get(num)).setLayout(new BoxLayout((pollarray.get(num)), BoxLayout.PAGE_AXIS));
 	votelist.get(index)[num] = pollq;
@@ -624,21 +759,26 @@ public class Client extends Panel implements Runnable
 	(pollanswers.get(index)).add(responses);
 	(pollresults.get(index)).add(new ArrayList<JLabel>());
 	
+	//Initialize results arraylist
 	for(int q = 0; q < responses.size(); q++){
 	    ((pollresults.get(index)).get(pollnum)).add(new JLabel(" (0 votes)"));
 	}
 
-	//List radio buttons
+	//Add check buttons for more than one answer
 	if(ansnum > 1){
 	    for(int s = 0; s < responses.size(); s++){
                 ((checklist.get(index)).get(pollnum)).add(new JCheckBox(responses.get(s)));
 		((pollPanel.get(index)).get(pollnum)).add(((checklist.get(index)).get(pollnum)).get(s));
+		
+		//Add listeners to the check buttons
 		(((checklist.get(index)).get(pollnum)).get(s)).addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+			    //See which button was checked
 			    for(int x = 0; x < checklist.size(); x++){
 				for(int y = 0; y < (checklist.get(x)).size(); y++){
 				    for(int z = 0; z < ((checklist.get(x)).get(y)).size(); z++){
 					if(e.getSource() == ((checklist.get(x)).get(y)).get(z)){
+					    //Add checked button to results or remove it
 					    if((((checklist.get(x)).get(y)).get(z)).isSelected()){
 						((results.get(x)).get(y)).add(Integer.toString(z));
 					    }
@@ -654,6 +794,7 @@ public class Client extends Panel implements Runnable
 	    }
 	}
 	else{
+	    //Add radio buttons
 	    ButtonGroup buttongroup = new ButtonGroup();
 	    for(int s = 0; s < responses.size(); s++){
 	       ((radiolist.get(index)).get(pollnum)).add(new JRadioButton(responses.get(s)));
@@ -661,6 +802,7 @@ public class Client extends Panel implements Runnable
 	       ((pollPanel.get(index)).get(pollnum)).add(((radiolist.get(index)).get(pollnum)).get(s));
 	       (((radiolist.get(index)).get(pollnum)).get(s)).addActionListener(new ActionListener() {
 		       public void actionPerformed(ActionEvent e) {
+			   //See which radio button was checked
 			   for(int x = 0; x < radiolist.size(); x++){
 			       for(int y = 0; y < (radiolist.get(x)).size(); y++){
 				   for(int z = 0; z < ((radiolist.get(x)).get(y)).size(); z++){
@@ -678,6 +820,7 @@ public class Client extends Panel implements Runnable
 	    }
 	}
 	
+	//Submit votes
 	((submitvote.get(index)).get(pollnum)).addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			for(int x = 0; x < submitvote.size(); x++){
@@ -694,10 +837,14 @@ public class Client extends Panel implements Runnable
 				    for(int k = 0; k < ((results.get(x)).get(z)).size(); k++){
 					send = send + ((results.get(x)).get(z)).get(k) + " ";
 				    }
+
 				    processMessage(send, x);
+
+				    //Make results page
 				    ((pollPanel.get(x)).get(z)).removeAll();
 				    ((pollPanel.get(x)).get(z)).setLayout(new GridLayout(0, 1));
 				    for(int w = 0; w < ((pollanswers.get(x)).get(z)).size(); w++){
+					//Add answers to results page
 					JPanel respage = new JPanel();
 					respage.add(new JLabel(((pollanswers.get(x)).get(z)).get(w)));
 					respage.add(((pollresults.get(x)).get(z)).get(w));
@@ -710,18 +857,23 @@ public class Client extends Panel implements Runnable
 		    }
 		});
 
+	//Finish poll GUI and return JPanel for cardlayout
 	((pollPanel.get(index)).get(pollnum)).add((submitvote.get(index)).get(pollnum));
 	(pollarray.get(num)).add((pollPanel.get(index)).get(pollnum));
 	return pollarray.get(num);
     }
 
+    //Create a temperature check
     public JPanel tempObject(ArrayList<JPanel> pollarray, int index, int num, int tempnum, String tempq, ArrayList<JLabel> avgtemp){
+	//Initialize GUI
 	pollarray.add(new JPanel());
 	int temp = 50;
 	(tempcheck.get(index)).add(new JSlider(JSlider.VERTICAL, 0, 100, temp));
 	((tempcheck.get(index)).get(tempnum)).setMajorTickSpacing(10);
 	((tempcheck.get(index)).get(tempnum)).setPaintTicks(true);
 	((tempcheck.get(index)).get(tempnum)).setPreferredSize(new Dimension(300, 225));
+	
+	//Make labels for JSlider
 	Hashtable labelTable = new Hashtable();
 	labelTable.put(1, new JLabel("   Strongly Disagree"));
 	labelTable.put(50, new JLabel("   Neutral") );
@@ -729,6 +881,7 @@ public class Client extends Panel implements Runnable
 	((tempcheck.get(index)).get(tempnum)).setLabelTable( labelTable );
 	((tempcheck.get(index)).get(tempnum)).setPaintLabels(true);
 
+	//Get temperature and send it to the server
 	((tempcheck.get(index)).get(tempnum)).addChangeListener(new ChangeListener() {
 		public void stateChanged(ChangeEvent event){
 		    for(int x = 0; x < tempcheck.size(); x++){
@@ -747,6 +900,7 @@ public class Client extends Panel implements Runnable
 	    });
 
       	
+	//Layout the temperature check object GUI
 	(pollarray.get(num)).setLayout(new BoxLayout((pollarray.get(num)), BoxLayout.PAGE_AXIS));
 	votelist.get(index)[num] = tempq;
 	JPanel tempane = new JPanel();
@@ -769,13 +923,16 @@ public class Client extends Panel implements Runnable
     public void processMessage(String message, int index){
 	try{
 	    if(message.equalsIgnoreCase("")){
+		//Don't let people send null messages
 	    }
 	    else if(message.startsWith("/part ")){
-		
+		//Check if a message is exiting a room
 		dout.writeUTF(message);
+		(tfarray.get(index)).setText("");
 		exitRoom(message);
 	    }
 	    else{
+		//Send message and reset the text field
 		dout.writeUTF(message);
 		(tfarray.get(index)).setText("");
 	    }
@@ -786,8 +943,10 @@ public class Client extends Panel implements Runnable
 
     //Removes tabs when exiting room
     public void exitRoom(String message){
+	//Remove all the elements for a room someone exits
 	for(int j = 0; j < 99999; j++){
 	    if(message.startsWith("/part " + roomlist[j])){
+		i--;
 	        channels.removeTabAt(j+1);
 		taarray.remove(j+1);
 		tabbararray.remove(j+1);
@@ -832,6 +991,15 @@ public class Client extends Panel implements Runnable
 		pollanswers.remove(j+1);
 		pollresults.remove(j+1);
 		pollPanel.remove(j+1);
+		partbutton.remove(j+1);
+		createbutton.remove(j+1);
+		joinbutton.remove(j+1);
+		joinname.remove(j+1);
+		createname.remove(j+1);
+		partname.remove(j+1);
+		chanpanel.remove(j+1);
+
+		//Remove the room from the roomlist and reindex it
 		for(int k = j+1; k < roomlist.length; k++){
 		    roomlist[k-1] = roomlist[k];
 		}
@@ -851,12 +1019,15 @@ public class Client extends Panel implements Runnable
 		//Add a room to the user's room list if they join a room. Also make a tabbed pane.
 		    if(message != null){
 			if((message).startsWith("join;")){
+			    //Join a channel
 			    messarray = (message).split(";", 2);
 			    roomlist[i-1] = messarray[1];
 			    i++;
+			   
+			    //Initiate a new tab
 			    newTab(i-1, roomlist[i-2]);
 			}
-		//Process the message and send it to the appropriate room
+			//Process the message and send it to the appropriate room
 			else{
 			    for(int j = 0; j < i; j++){
 				if(message.startsWith(roomlist[j] + " ")){
@@ -865,6 +1036,8 @@ public class Client extends Panel implements Runnable
 					//send update to the right temp in the right room
 					String[] mess2array;
 					mess2array = messarray[1].split(" ", 3);
+
+					//Change icon if the temperature falls within a certain range
 					((avgtemp.get(j+1)).get(Integer.parseInt(mess2array[1]))).setText("Average Temperature: " + mess2array[2]);
 					if(Double.parseDouble(mess2array[2]) > 66){
 					    ((picture.get(j+1)).get(Integer.parseInt(mess2array[1]))).setIcon(happy);
@@ -880,33 +1053,42 @@ public class Client extends Panel implements Runnable
 					String[] mess2array;
 					mess2array = messarray[1].split(" ");
 
+					//Dynamically update poll results
 					for(int jk = 3; jk < mess2array.length; jk++){
 					    (((pollresults.get(j+1)).get(Integer.parseInt(mess2array[1]))).get(Integer.parseInt(mess2array[jk]))).setText(" (" + mess2array[jk+1] + " votes)");
 					    jk = jk+1;
 					}
 				    }
 				    else if(messarray[1].startsWith(";newpoll ")){
+					//Initiate a new poll on the non-main channel
 					String[] mess2array;
 					mess2array = messarray[1].split(" ", 5);
+
+					//Fill array with responses
 					String[] qresparray = mess2array[4].split(",");
 					ArrayList<String> responsearray = new ArrayList<String>();
 					for(int d = 1; d < qresparray.length; d++){
 					    responsearray.add(qresparray[d]);
 					}
    
+					//Initiate a poll and add it to the cardlayout of votes
 					(incards.get(j+1)).add(pollObject(pollarray.get(j+1), j+1, Integer.parseInt(mess2array[1]), Integer.parseInt(mess2array[2]), qresparray[0], responsearray, Integer.parseInt(mess2array[3])), mess2array[2]);
 				    }
 				    else if(messarray[1].startsWith(";newtemp ")){
+					//Initiate a temp check on a non-main server and add it to 
 					String[] mess2array;
 					mess2array = messarray[1].split(" ", 4);
-					(incards.get(j+1)).add(tempObject(pollarray.get(j+1), j+1, Integer.parseInt(messarray[1]), Integer.parseInt(messarray[2]), messarray[3], avgtemp.get(j+1)), mess2array[2]);
+					(incards.get(j+1)).add(tempObject(pollarray.get(j+1), j+1, Integer.parseInt(mess2array[2]), Integer.parseInt(mess2array[1]), mess2array[3], avgtemp.get(j+1)), mess2array[2]);
 				    }
 				    else if(messarray[1].startsWith(";updatelist")){
+					//Update the list of users
 					String[] mess2array;
 					mess2array = messarray[1].split(" ");
 					for(int p = 1; p < mess2array.length; p++){
 					    (users.get(j+1))[p-1] = mess2array[p];
 					}
+
+					//Remove users if the original list exceeds the length of the new list
 					if((users.get(j+1)).length > (mess2array.length-1)){
 					    for(int b = (mess2array.length-1); b < (users.get(j+1)).length; b++){
 						(users.get(j+1))[b] = null;
@@ -914,6 +1096,7 @@ public class Client extends Panel implements Runnable
 					}
 				    }
 				    else{
+					//Send a message to a non-main room
 					(taarray.get(j+1)).append(messarray[1]+"\n");
 				    }
 				    flag = 1;
@@ -926,6 +1109,7 @@ public class Client extends Panel implements Runnable
 				    messarray = message.split(" ", 3);
 				    ((avgtemp.get(0)).get(Integer.parseInt(messarray[1]))).setText("Average Temperature: " + messarray[2]);
 				    
+				    //Update the picture associated with the temperature
 				    if(Double.parseDouble(messarray[2]) > 66){
 					((picture.get(0)).get(Integer.parseInt(messarray[1]))).setIcon(happy);
 				    }
@@ -937,31 +1121,44 @@ public class Client extends Panel implements Runnable
 				    }
 				}
 				else if(message.startsWith(";pollup ")){
+				    ///Update the poll results
 				    messarray = message.split(" ");
 				    
+				    //Update the results array dynamically
 				    for(int jk = 3; jk < messarray.length; jk++){
 					(((pollresults.get(0)).get(Integer.parseInt(messarray[1]))).get(Integer.parseInt(messarray[jk]))).setText(" (" + messarray[jk+1] + " votes)");
 					jk = jk+1;
 				    }
 				}
 				else if(message.startsWith(";newtemp ")){
+				    //Add a temperature check
 				    messarray = message.split(" ", 4);
-				    (incards.get(0)).add(tempObject(pollarray.get(0), 0, Integer.parseInt(messarray[1]), Integer.parseInt(messarray[2]), messarray[3], avgtemp.get(0)), messarray[2]);                 
+				    (incards.get(0)).add(tempObject(pollarray.get(0), 0, Integer.parseInt(messarray[2]), Integer.parseInt(messarray[1]), messarray[3], avgtemp.get(0)), messarray[2]);                 
 				}
 				else if(message.startsWith(";newpoll ")){
+				    //Add a new poll
 				    messarray = message.split(" ", 5);
 				    String[] qresparray = messarray[4].split(",");
+
+				    //Make list of results
 				    ArrayList<String> responsearray = new ArrayList<String>();
 				    for(int d = 1; d < qresparray.length; d++){
 					responsearray.add(qresparray[d]);
 				    }
+
+				    //Initiate poll and add to cardlayout
 				    (incards.get(0)).add(pollObject(pollarray.get(0), 0, Integer.parseInt(messarray[1]), Integer.parseInt(messarray[2]), qresparray[0], responsearray, Integer.parseInt(messarray[3])), messarray[2]);
 				}
 				else if(message.startsWith(";updatelist")){
+				    //Update the list of users
 				    messarray = message.split(" ");
+
+				    //Recreate the list of users
 				    for(int p = 1; p < messarray.length; p++){
 					(users.get(0))[p-1] = messarray[p];
 				    } 
+
+				    //Trim the length of the list
 				    if((users.get(0)).length > (messarray.length-1)){
 					for(int b = (messarray.length-1); b < (users.get(0)).length; b++){
 					    (users.get(0))[b] = null;
@@ -969,6 +1166,7 @@ public class Client extends Panel implements Runnable
 				    }
 				}
 				else{
+				    //Just send a normal message to the main channel
 				    (taarray.get(0)).append(message+"\n");
 				}
 			    }
